@@ -16,25 +16,41 @@ public class Minefield {
     private boolean firstMove;
     private GameResult result;
 
-    // TODO: ensure minimum row count, col count, bomb ratio
     /* create a randomly-generated minefield of given size and bomb density */
-    public Minefield(int rows, int cols, double bombRatio) {
+    public Minefield(int rows, int cols, int percentBomb) {
+        if (rows < 4 || cols < 4 || rows > 100 || cols > 100) {
+            throw new IllegalArgumentException("Row and column count must be between 4 and 100");
+        }
+        if (percentBomb < 0 || percentBomb > 99) {
+            throw new IllegalArgumentException("Invalid bomb ratio");
+        }
+
         firstMove = true;
         result = GameResult.IN_PROGRESS;
 
         int tiles = rows * cols;
-        int bombsToPlace = (int) (tiles * bombRatio);
+        // TODO: use JDK21 Math.clamp() method instead
+        int bombsToPlace = Math.max(rows * cols - 1, Math.min(1, (int) (tiles * percentBomb)));
 
         // set class fields
         grid = new Cell[rows][cols];
         bombValues = new int[rows][cols];
 
+        // mark bomb neighbor values matrix with bombs, then shuffle
+        for (int i = 0; i < bombsToPlace; i++) {
+            int row = bombsToPlace / rows;
+            int col = bombsToPlace % cols;
+            bombValues[row][col] = BOMB_CELL;
+        }
+        shuffle2DArray(bombValues);
+
+        // fill grid with either empty or bomb cells, using neighbor values
+        // matrix as the guide
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
                 grid[i][j] = new Cell(false, CellState.HIDDEN);
 
-                double rand = Math.random();
-                if (bombCount < bombsToPlace && rand <= ((double) bombsToPlace / tiles)) {
+                if (bombValues[i][j] == BOMB_CELL) {
                     addBomb(i, j);
                 }
             }
@@ -151,6 +167,22 @@ public class Minefield {
             }
         }
         bombCount++;
+    }
+
+    public void removeBomb(int row, int col) {
+        assert grid[row][col].isBomb();
+
+        grid[row][col].setBomb(false);
+        bombValues[row][col] = 0;
+
+        for (int i = row - 1; i <= row + 1; i++) {
+            for (int j = col - 1; j <= col + 1; j++) {
+                if (validCell(i, j) && bombValues[i][j] == BOMB_CELL){
+                    bombValues[row][col]++;
+                }
+            }
+        }
+        bombCount--;
     }
 
     public void chooseCell(int row, int col) {
@@ -270,6 +302,29 @@ public class Minefield {
             }
         }
         return c;
+    }
+
+    private static void shuffle2DArray(int[][] arr) {
+        int m = arr.length;
+        int n = arr[0].length;
+
+        int randRowRange, randColRange;
+        randRowRange = n;
+
+        for (int i = 0; i < m; i++) {
+            randColRange = m;
+            for (int j = 0; j < n; j++) {
+                int randRow = i + (int) (Math.random() * randRowRange);
+                int randCol = j + (int) (Math.random() * randColRange);
+
+                int temp = arr[i][j];
+                arr[i][j] = arr[randRow][randCol];
+                arr[randRow][randCol] = temp;
+
+                randColRange--;
+            }
+            randRowRange--;
+        }
     }
 
     // TODO: remove test main

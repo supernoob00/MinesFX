@@ -114,7 +114,7 @@ public class GameBoard {
     }
 
     public void startNewGame() {
-        minefield = new Minefield(25, 25, 0.2);
+        minefield = new Minefield(25, 25, 30);
         draw();
     }
 
