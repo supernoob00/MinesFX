@@ -13,7 +13,7 @@ import java.io.IOException;
 public class MinesweeperApplication extends Application {
     @Override
     public void start(Stage stage) throws IOException {
-        Minefield minefield = new Minefield(new File("/home/sam/repos/minesweeper/src/main/resources/com/somerdin/minesweeper/mines.txt"));
+        Minefield minefield = new Minefield(new File("/home/sam/repos/minesweeper/src/main/resources/mines.txt"));
         GameBoard gameBoard = new GameBoard(minefield);
         GameWindow gameWindow = new GameWindow(gameBoard);
 

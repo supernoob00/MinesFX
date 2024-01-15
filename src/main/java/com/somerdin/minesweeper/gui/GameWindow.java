@@ -8,6 +8,8 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.control.MenuBar;
 import javafx.scene.layout.Pane;
 
+import java.io.File;
+
 public class GameWindow {
     private GameBoard board;
     private BorderPane borderPane;
@@ -46,12 +48,12 @@ public class GameWindow {
         centerPane.widthProperty().addListener(
                 (o, oldWidth, newWidth) -> {
                     canvas.resize(newWidth.doubleValue(), canvas.getHeight());
-                    board.drawResized();
+                    board.draw();
                 });
         centerPane.heightProperty().addListener(
                 (o, oldVal, newHeight) -> {
                     canvas.resize(canvas.getWidth(), newHeight.doubleValue());
-                    board.drawResized();
+                    board.draw();
                 });
 
         centerPane.resize(500, 500);

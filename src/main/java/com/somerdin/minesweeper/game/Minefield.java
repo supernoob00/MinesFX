@@ -170,6 +170,7 @@ public class Minefield {
             if (selected.isBomb()) {
                 // TODO: logic for blow up
                 revealAll();
+                selected.setState(CellState.EXPLODED);
                 result = GameResult.GAME_LOST;
             } else {
                 selected.setState(CellState.REVEALED);
@@ -182,6 +183,7 @@ public class Minefield {
 
         assert cell.getState() != CellState.REVEALED;
         assert !cell.isBomb();
+
 
         cell.setState(CellState.REVEALED);
         revealCount--;
@@ -274,7 +276,5 @@ public class Minefield {
     public static void main(String[] args) {
         File text = new File("/home/sam/repos/minesweeper/src/main/resources/com/somerdin/minesweeper/mines.txt");
         Minefield minefield1 = new Minefield(text);
-        System.out.println(minefield1);
-        System.out.println(minefield1);
     }
 }

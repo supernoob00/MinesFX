@@ -5,19 +5,29 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="33651b82-1023-42cd-9981-d500d28a25d3" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.mvn/wrapper/maven-wrapper.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.mvn/wrapper/maven-wrapper.properties" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/mvnw" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/mvnw.cmd" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/MinesweeperApplication.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/module-info.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/classic/1mines.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/classic/2mines.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/classic/3mines.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/classic/4mines.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/classic/5mines.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/classic/6mines.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/classic/7mines.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/classic/8mines.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/classic/exploded.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/classic/flag.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/classic/incorrect.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/classic/maybe.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/classic/mine.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/classic/theme.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/MinesweeperApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/MinesweeperApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/game/CellState.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/game/CellState.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/game/Minefield.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/game/Minefield.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/gui/GameBoard.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/gui/GameBoard.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/gui/GameWindow.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/gui/GameWindow.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/module-info.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/module-info.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/com/somerdin/minesweeper/mines.txt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/mines.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -54,18 +64,27 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "WebServerToolWindowFactoryState": "false",
+    "kotlin.migration.detection.enabled": "false",
+    "last_opened_file_path": "/home/sam/repos/minesweeper/src/main/resources/com/somerdin/minesweeper",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
-    "project.structure.last.edited": "Modules",
+    "project.structure.last.edited": "Libraries",
     "project.structure.proportion": "0.15",
-    "project.structure.side.proportion": "0.40110394",
+    "project.structure.side.proportion": "0.7484276",
+    "settings.editor.selected.configurable": "com.intellij.jarRepository.settings.RemoteRepositoriesConfigurable",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
   <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/main/resources/com/somerdin/minesweeper" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/main/resources" />
+    </key>
     <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
       <recent name="com.somerdin.minesweeper" />
     </key>
@@ -114,22 +133,14 @@
       <option name="presentableId" value="Default" />
       <updated>1704942035852</updated>
       <workItem from="1704942036943" duration="29365000" />
-      <workItem from="1705104020115" duration="29097000" />
+      <workItem from="1705104020115" duration="32489000" />
+      <workItem from="1705190951925" duration="5972000" />
+      <workItem from="1705199233945" duration="32521000" />
+      <workItem from="1705282582461" duration="2947000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/gui/GameWindow.java</url>
-          <line>32</line>
-          <option name="timeStamp" value="5" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
   </component>
 </project>
