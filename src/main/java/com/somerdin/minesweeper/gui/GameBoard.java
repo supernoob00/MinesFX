@@ -1,23 +1,12 @@
 package com.somerdin.minesweeper.gui;
 
-import com.github.weisj.jsvg.SVGDocument;
-import com.github.weisj.jsvg.geometry.size.FloatSize;
-import com.github.weisj.jsvg.parser.SVGLoader;
-import com.somerdin.minesweeper.game.Cell;
-import com.somerdin.minesweeper.game.CellState;
-import com.somerdin.minesweeper.game.GameResult;
-import com.somerdin.minesweeper.game.Minefield;
+import com.somerdin.minesweeper.game.*;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.value.ObservableDoubleValue;
-import javafx.embed.swing.SwingFXUtils;
-import javafx.scene.SubScene;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
-import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
 
-import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.util.Optional;
 
 public class GameBoard {
@@ -76,13 +65,13 @@ public class GameBoard {
 
             switch (ev.getButton()) {
                 case PRIMARY:
-                    if (minefield.getCell(row, col).getState() != CellState.REVEALED) {
+                    if (minefield.getCell(row, col).getCellStatus() != CellStatus.REVEALED) {
                         minefield.chooseCell(row, col);
                         draw();
                     }
                     break;
                 case SECONDARY:
-                    minefield.getCell(row, col).setState(CellState.FLAGGED);
+                    minefield.toggleFlag(row, col);
                     draw();
                     break;
                 default:
@@ -129,9 +118,17 @@ public class GameBoard {
         }
     }
 
+    private ObservableDoubleValue widthObservable() {
+        return canvas.widthProperty();
+    }
+
+    private ObservableDoubleValue heightObservable() {
+        return canvas.heightProperty();
+    }
+
     private void drawTile(int row, int col) {
         Cell cell = minefield.getCell(row, col);
-        if (cell.getState() == CellState.REVEALED) {
+        if (cell.getCellStatus() == CellStatus.REVEALED) {
             if (cell.isBomb()) {
                 g.setFill(bombColor);
             } else {
@@ -157,19 +154,21 @@ public class GameBoard {
     private Optional<Image> getTileImage(int row, int col) {
         Cell cell = minefield.getCell(row, col);
 
-        switch (cell.getState()) {
+        switch (cell.getCellStatus()) {
             case HIDDEN:
                 return Optional.empty();
             case FLAGGED:
                 return Optional.of(DEFAULT_FLAG.getFXImage());
             case FLAGGED_QUESTION:
                 return Optional.of(DEFAULT_MAYBE.getFXImage());
-            case EXPLODED:
-                return Optional.of(DEFAULT_EXPLODED.getFXImage());
             case REVEALED:
                 if (cell.isBomb()) {
-                    return Optional.of(DEFAULT_MINE.getFXImage());
+                    if (cell.getBombStatus() == BombStatus.UNDETONATED) {
+                        return Optional.of(DEFAULT_MINE.getFXImage());
+                    }
+                    return Optional.of(DEFAULT_EXPLODED.getFXImage());
                 }
+
                 int count = minefield.neighborCount(row, col);
                 if (count == 0) {
                     return Optional.empty();
@@ -192,14 +191,6 @@ public class GameBoard {
             case 8 -> DEFAULT_8.getFXImage();
             default -> throw new IllegalArgumentException();
         };
-    }
-
-    private ObservableDoubleValue widthObservable() {
-        return canvas.widthProperty();
-    }
-
-    private ObservableDoubleValue heightObservable() {
-        return canvas.heightProperty();
     }
 
     private double width() {

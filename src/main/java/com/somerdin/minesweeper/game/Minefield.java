@@ -48,7 +48,7 @@ public class Minefield {
         // matrix as the guide
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                grid[i][j] = new Cell(false, CellState.HIDDEN);
+                grid[i][j] = new Cell(false, CellStatus.HIDDEN);
 
                 if (bombValues[i][j] == BOMB_CELL) {
                     addBomb(i, j);
@@ -86,18 +86,18 @@ public class Minefield {
                         i++;
                         break;
                     case 'B': // revealed bomb
-                        grid[i][j] = new Cell(false, CellState.REVEALED);
+                        grid[i][j] = new Cell(false, CellStatus.REVEALED);
                         addBomb(i, j);
                         break;
                     case 'b': // hidden bomb
-                        grid[i][j] = new Cell(false, CellState.HIDDEN);
+                        grid[i][j] = new Cell(false, CellStatus.HIDDEN);
                         addBomb(i, j);
                         break;
                     case '#': // hidden, no bomb
-                        grid[i][j] = new Cell(false, CellState.HIDDEN);
+                        grid[i][j] = new Cell(false, CellStatus.HIDDEN);
                         break;
                     case 'X': // revealed, no bomb
-                        grid[i][j] = new Cell(false, CellState.REVEALED);
+                        grid[i][j] = new Cell(false, CellStatus.REVEALED);
                         break;
                     default:
                         break;
@@ -202,22 +202,34 @@ public class Minefield {
             if (selected.isBomb()) {
                 // TODO: logic for blow up
                 revealAll();
-                selected.setState(CellState.EXPLODED);
+                selected.setBombStatus(BombStatus.DETONATED);
                 result = GameResult.GAME_LOST;
             } else {
-                selected.setState(CellState.REVEALED);
+                selected.setCellStatus(CellStatus.REVEALED);
             }
+        }
+    }
+
+    public void toggleFlag(int row, int col) {
+        assert grid[row][col].getCellStatus() != CellStatus.REVEALED;
+
+        Cell cell = grid[row][col];
+        switch (cell.getCellStatus()) {
+            case HIDDEN -> cell.setCellStatus(CellStatus.FLAGGED);
+            case FLAGGED -> cell.setCellStatus(CellStatus.FLAGGED_QUESTION);
+            case FLAGGED_QUESTION -> cell.setCellStatus(CellStatus.HIDDEN);
+            default -> throw new IllegalStateException("Can't toggle flag for this cell");
         }
     }
 
     private void revealCell(int row, int col) {
         Cell cell = grid[row][col];
 
-        assert cell.getState() != CellState.REVEALED;
+        assert cell.getCellStatus() != CellStatus.REVEALED;
         assert !cell.isBomb();
 
 
-        cell.setState(CellState.REVEALED);
+        cell.setCellStatus(CellStatus.REVEALED);
         revealCount--;
     }
 
@@ -241,7 +253,7 @@ public class Minefield {
     private void revealAll() {
         for (int i = 0; i < rowCount(); i++) {
             for (int j = 0; j < colCount(); j++) {
-                grid[i][j].setState(CellState.REVEALED);
+                grid[i][j].setCellStatus(CellStatus.REVEALED);
             }
         }
     }
@@ -268,7 +280,7 @@ public class Minefield {
                 for (int j = col - 1; j <= col + 1; j++) {
                     Cell cell;
                     if (validCell(i, j)
-                            && (cell = grid[i][j]).getState() != CellState.REVEALED
+                            && (cell = grid[i][j]).getCellStatus() != CellStatus.REVEALED
                             && !cell.isBomb()){
                         revealCell(i, j);
 
@@ -290,9 +302,9 @@ public class Minefield {
         Cell cell = grid[row][col];
         char c;
 
-        if (cell.getState() == CellState.HIDDEN) {
+        if (cell.getCellStatus() == CellStatus.HIDDEN) {
             c = '#';
-        } else if (cell.getState() == CellState.FLAGGED) {
+        } else if (cell.getCellStatus() == CellStatus.FLAGGED) {
             c = 'F';
         } else { // cell state is REVEALED
             if (cell.isBomb()) {
