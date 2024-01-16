@@ -5,6 +5,9 @@ import com.somerdin.minesweeper.gui.GameBoard;
 import com.somerdin.minesweeper.gui.GameWindow;
 import javafx.application.Application;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
+import javafx.scene.control.PopupControl;
+import javafx.stage.Popup;
 import javafx.stage.Stage;
 
 import java.io.File;
@@ -16,6 +19,7 @@ public class MinesweeperApplication extends Application {
         Minefield minefield = new Minefield(new File("/home/sam/repos/minesweeper/src/main/resources/mines.txt"));
         GameBoard gameBoard = new GameBoard(minefield);
         GameWindow gameWindow = new GameWindow(gameBoard);
+
 
         Scene scene = new Scene(gameWindow.getBorderPane());
 

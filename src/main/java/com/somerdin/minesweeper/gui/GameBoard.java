@@ -102,8 +102,9 @@ public class GameBoard {
         return canvas;
     }
 
-    public void startNewGame() {
-        minefield = new Minefield(25, 25, 30);
+    public void startNewGame(int rows, int cols) {
+        minefield = new Minefield(rows, cols, 30);
+        tileLength.set(tileLength());
         draw();
     }
 
