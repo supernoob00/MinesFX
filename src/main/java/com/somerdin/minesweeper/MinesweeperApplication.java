@@ -18,8 +18,8 @@ public class MinesweeperApplication extends Application {
     public void start(Stage stage) throws IOException {
         Minefield minefield = new Minefield(new File("/home/sam/repos/minesweeper/src/main/resources/mines.txt"));
         GameBoard gameBoard = new GameBoard(minefield);
-        GameWindow gameWindow = new GameWindow(gameBoard);
 
+        GameWindow gameWindow = new GameWindow(stage, gameBoard);
 
         Scene scene = new Scene(gameWindow.getBorderPane());
 

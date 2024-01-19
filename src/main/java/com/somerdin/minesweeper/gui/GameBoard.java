@@ -1,7 +1,7 @@
 package com.somerdin.minesweeper.gui;
 
 import com.somerdin.minesweeper.game.*;
-import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.*;
 import javafx.beans.value.ObservableDoubleValue;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
@@ -35,12 +35,18 @@ public class GameBoard {
 
     // TODO: add padding logic to draw methods
     private double padding;
-    private SimpleDoubleProperty tileLength = new SimpleDoubleProperty();
+    private DoubleProperty tileLength = new SimpleDoubleProperty();
+    private BooleanProperty isRunning = new SimpleBooleanProperty();
+
+    private IntegerProperty flagsPlaced = new SimpleIntegerProperty();
+    private IntegerProperty bombCount = new SimpleIntegerProperty();
 
     private Minefield minefield;
 
     public GameBoard(Minefield field) {
         minefield = field;
+
+        bombCount.set(minefield.getBombCount());
 
         gap = 4;
         canvas = new ResizableCanvas();
@@ -63,16 +69,34 @@ public class GameBoard {
                 return;
             }
 
+            Cell selectedCell = minefield.getCell(row, col);
             switch (ev.getButton()) {
                 case PRIMARY:
-                    if (minefield.getCell(row, col).getCellStatus() != CellStatus.REVEALED) {
+                    if (selectedCell.getCellStatus() != CellStatus.REVEALED) {
                         minefield.chooseCell(row, col);
                         draw();
+
+                        if (!isRunning.get()) {
+                            isRunning.set(true);
+                        }
+
+                        switch (minefield.getResult()) {
+                            case GAME_WON, GAME_LOST -> isRunningProperty().set(false);
+                        }
                     }
                     break;
                 case SECONDARY:
-                    minefield.toggleFlag(row, col);
-                    draw();
+                    if (selectedCell.getCellStatus() != CellStatus.REVEALED) {
+                        CellStatus oldStatus = selectedCell.getCellStatus();
+                        minefield.toggleFlag(row, col);
+                        if (selectedCell.getCellStatus() == CellStatus.FLAGGED) {
+                            flagsPlaced.set(flagsPlaced.get() + 1);
+                        } else if (oldStatus == CellStatus.FLAGGED) {
+                            flagsPlaced.set(flagsPlaced.get() - 1);
+                        }
+                        System.out.println(flagsPlaced.get());
+                        draw();
+                    }
                     break;
                 default:
                     break;
@@ -102,8 +126,10 @@ public class GameBoard {
         return canvas;
     }
 
-    public void startNewGame(int rows, int cols) {
-        minefield = new Minefield(rows, cols, 30);
+    public void startNewGame(int rows, int cols, int percent) {
+        minefield = new Minefield(rows, cols, percent);
+        flagsPlaced.set(0);
+        bombCount.set(minefield.getBombCount());
         tileLength.set(tileLength());
         draw();
     }
@@ -117,6 +143,18 @@ public class GameBoard {
                 drawTile(i, j);
             }
         }
+    }
+
+    public BooleanProperty isRunningProperty() {
+        return isRunning;
+    }
+
+    public IntegerProperty flagsPlacedProperty() {
+        return flagsPlaced;
+    }
+
+    public IntegerProperty bombCountProperty() {
+        return bombCount;
     }
 
     private ObservableDoubleValue widthObservable() {
@@ -213,7 +251,7 @@ public class GameBoard {
     // TODO: clean this up
     /* other methods should use class field value to avoid unnecessary calculation */
     private double tileLength() {
-        if (width() < height()) {
+        if (width() / cols() < height() / rows()) {
             double totalGap = (cols() + 1) * gap;
             return (width() - totalGap) / cols();
         }

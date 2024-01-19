@@ -7,6 +7,7 @@ import java.util.Queue;
 public class Minefield {
     private static final int BOMB_CELL = -1;
 
+    private boolean isStartZero = true;
     private int bombCount;
     private int revealCount;
 
@@ -15,6 +16,14 @@ public class Minefield {
 
     private boolean firstMove;
     private GameResult result;
+
+    public Minefield(int rows,
+                     int cols,
+                     int percentBomb,
+                     boolean startZero,
+                     int fillBlocks) {
+
+    }
 
     /* create a randomly-generated minefield of given size and bomb density */
     public Minefield(int rows, int cols, int percentBomb) {
@@ -30,7 +39,9 @@ public class Minefield {
 
         int tiles = rows * cols;
         // TODO: use JDK21 Math.clamp() method instead
-        int bombsToPlace = Math.max(rows * cols - 1, Math.min(1, (int) (tiles * percentBomb)));
+        int bombsToPlace = Math.min(
+                rows * cols - 9,
+                Math.max(1, (int) (tiles * ((double) percentBomb / 100))));
 
         // set class fields
         grid = new Cell[rows][cols];
@@ -38,8 +49,9 @@ public class Minefield {
 
         // mark bomb neighbor values matrix with bombs, then shuffle
         for (int i = 0; i < bombsToPlace; i++) {
-            int row = bombsToPlace / rows;
-            int col = bombsToPlace % cols;
+            int row = i / cols;
+            int col = i % cols;
+
             bombValues[row][col] = BOMB_CELL;
         }
         shuffle2DArray(bombValues);
@@ -117,6 +129,10 @@ public class Minefield {
         return result;
     }
 
+    public int getBombCount() {
+        return bombCount;
+    }
+
     public int neighborCount(int row, int col) {
         int bombCount = 0;
 
@@ -128,6 +144,13 @@ public class Minefield {
             }
         }
         return bombCount;
+    }
+
+    /* returns true if cells are neighbors; cells cannot be the same */
+    public boolean areNeighbors(int i1, int j1, int i2, int j2) {
+        int rowDiff = i1 - i2;
+        int colDiff = j1 - j2;
+        return rowDiff >= -1 && rowDiff <= 1 && colDiff >= -1 && colDiff <= 1;
     }
 
     public int rowCount() {
@@ -172,16 +195,21 @@ public class Minefield {
     public void removeBomb(int row, int col) {
         assert grid[row][col].isBomb();
 
-        grid[row][col].setBomb(false);
-        bombValues[row][col] = 0;
+        bombValues[row][col] = 1;
 
         for (int i = row - 1; i <= row + 1; i++) {
             for (int j = col - 1; j <= col + 1; j++) {
-                if (validCell(i, j) && bombValues[i][j] == BOMB_CELL){
-                    bombValues[row][col]++;
+                if (validCell(i, j)){
+                    if (bombValues[i][j] != BOMB_CELL) {
+                        bombValues[i][j]--;
+                    } else {
+                        bombValues[row][col]++;
+                    }
                 }
             }
         }
+
+        grid[row][col].setBomb(false);
         bombCount--;
     }
 
@@ -192,21 +220,25 @@ public class Minefield {
 
         Cell selected = grid[row][col];
 
+        // TODO: find cleaner way to express logic
         if (firstMove) {
-            if (selected.isBomb()) {
+            if (isStartZero) {
+                moveStartingNeighbors(row, col);
+            } else if (selected.isBomb()) {
                 moveBombToFirstEmpty(row, col);
             }
-            revealArea(row, col);
             firstMove = false;
-        } else {
-            if (selected.isBomb()) {
-                // TODO: logic for blow up
-                revealAll();
-                selected.setBombStatus(BombStatus.DETONATED);
-                result = GameResult.GAME_LOST;
-            } else {
-                selected.setCellStatus(CellStatus.REVEALED);
-            }
+        } else if (selected.isBomb()) {
+            // TODO: logic for blow up
+            revealAll();
+            selected.setBombStatus(BombStatus.DETONATED);
+            result = GameResult.GAME_LOST;
+            return;
+        }
+
+        revealArea(row, col);
+        if (revealCount == rowCount() * colCount() - bombCount) {
+            result = GameResult.GAME_WON;
         }
     }
 
@@ -230,7 +262,7 @@ public class Minefield {
 
 
         cell.setCellStatus(CellStatus.REVEALED);
-        revealCount--;
+        revealCount++;
     }
 
     /* moves bomb at specified cell to first empty cell from top left */
@@ -250,10 +282,41 @@ public class Minefield {
         }
     }
 
-    private void revealAll() {
+    private void setRandomNonNeighborCellBomb(int row, int col) {
+        int i = (int) (Math.random() * rowCount());
+        int j = (int) (Math.random() * colCount());
+
+        int count = rowCount() * colCount();
+
+        while (count >= 0) {
+            if (!grid[i][j].isBomb()
+                    && !areNeighbors(row, col, i, j)) {
+                addBomb(i, j);
+                break;
+            }
+            j = (j + 1) % colCount();
+            if (j == 0) {
+                i = (i + 1) % colCount();
+            }
+            count--;
+        }
+    }
+
+    public void moveStartingNeighbors(int row, int col) {
+        for (int i = row - 1; i <= row + 1; i++) {
+            for (int j = col - 1; j <= col + 1; j++) {
+                if (validCell(i, j) && grid[i][j].isBomb()){
+                    removeBomb(i, j);
+                    setRandomNonNeighborCellBomb(row, col);
+                }
+            }
+        }
+    }
+
+    public void revealAll() {
         for (int i = 0; i < rowCount(); i++) {
             for (int j = 0; j < colCount(); j++) {
-                grid[i][j].setCellStatus(CellStatus.REVEALED);
+                revealCell(i, j);
             }
         }
     }
@@ -321,10 +384,10 @@ public class Minefield {
         int n = arr[0].length;
 
         int randRowRange, randColRange;
-        randRowRange = n;
+        randRowRange = m;
 
         for (int i = 0; i < m; i++) {
-            randColRange = m;
+            randColRange = n;
             for (int j = 0; j < n; j++) {
                 int randRow = i + (int) (Math.random() * randRowRange);
                 int randCol = j + (int) (Math.random() * randColRange);
@@ -337,11 +400,5 @@ public class Minefield {
             }
             randRowRange--;
         }
-    }
-
-    // TODO: remove test main
-    public static void main(String[] args) {
-        File text = new File("/home/sam/repos/minesweeper/src/main/resources/com/somerdin/minesweeper/mines.txt");
-        Minefield minefield1 = new Minefield(text);
     }
 }
