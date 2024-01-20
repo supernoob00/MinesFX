@@ -6,6 +6,7 @@ import javafx.beans.value.ObservableDoubleValue;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 
 import java.util.Optional;
 
@@ -27,6 +28,7 @@ public class GameBoard {
     private Color tileColor = Color.LIGHTGRAY;
     private Color revealedTileColor = Color.WHITESMOKE;
     private Color gapColor = Color.GREY;
+    private Color pausedColor = Color.WHEAT;
 
     private final ResizableCanvas canvas;
     private final GraphicsContext g;
@@ -36,7 +38,8 @@ public class GameBoard {
     // TODO: add padding logic to draw methods
     private double padding;
     private DoubleProperty tileLength = new SimpleDoubleProperty();
-    private BooleanProperty isRunning = new SimpleBooleanProperty();
+    private BooleanProperty isTimerRunning = new SimpleBooleanProperty();
+    private BooleanProperty isPaused = new SimpleBooleanProperty(false);
 
     private IntegerProperty flagsPlaced = new SimpleIntegerProperty();
     private IntegerProperty bombCount = new SimpleIntegerProperty();
@@ -74,15 +77,15 @@ public class GameBoard {
                 case PRIMARY:
                     if (selectedCell.getCellStatus() != CellStatus.REVEALED) {
                         minefield.chooseCell(row, col);
-                        draw();
 
-                        if (!isRunning.get()) {
-                            isRunning.set(true);
+                        if (!isTimerRunning.get()) {
+                            isTimerRunning.set(true);
                         }
 
                         switch (minefield.getResult()) {
-                            case GAME_WON, GAME_LOST -> isRunningProperty().set(false);
+                            case GAME_WON, GAME_LOST -> isTimerRunningProperty().set(false);
                         }
+                        draw();
                     }
                     break;
                 case SECONDARY:
@@ -116,7 +119,7 @@ public class GameBoard {
         DEFAULT_8 = new SVGImage(BoardImages.DEFAULT_8, tileLength);
         DEFAULT_MINE = new SVGImage(BoardImages.DEFAULT_MINE, tileLength);
         DEFAULT_EXPLODED = new SVGImage(BoardImages.DEFAULT_EXPLODED, tileLength);
-        DEFAULT_FLAG = new SVGImage(BoardImages.DEFAULT_FLAG, tileLength);
+        DEFAULT_FLAG = new SVGImage(BoardImages.DEFAULT_FLAG, tileLength, 0.75);
         DEFAULT_MAYBE = new SVGImage(BoardImages.DEFAULT_MAYBE, tileLength);
 
         draw();
@@ -135,18 +138,22 @@ public class GameBoard {
     }
 
     public void draw() {
-        g.setFill(gapColor);
-        g.fillRect(0, 0, width(), height());
+        if (!isPaused.get()) {
+            g.setFill(gapColor);
+            g.fillRect(0, 0, width(), height());
 
-        for (int i = 0; i < rows(); i++) {
-            for (int j = 0; j < cols(); j++) {
-                drawTile(i, j);
+            for (int i = 0; i < rows(); i++) {
+                for (int j = 0; j < cols(); j++) {
+                    drawTile(i, j);
+                }
             }
+        } else {
+            drawPaused();
         }
     }
 
-    public BooleanProperty isRunningProperty() {
-        return isRunning;
+    public BooleanProperty isTimerRunningProperty() {
+        return isTimerRunning;
     }
 
     public IntegerProperty flagsPlacedProperty() {
@@ -168,7 +175,7 @@ public class GameBoard {
     private void drawTile(int row, int col) {
         Cell cell = minefield.getCell(row, col);
         if (cell.getCellStatus() == CellStatus.REVEALED) {
-            if (cell.isBomb()) {
+            if (cell.getBombStatus() == BombStatus.DETONATED) {
                 g.setFill(bombColor);
             } else {
                 g.setFill(revealedTileColor);
@@ -183,11 +190,18 @@ public class GameBoard {
         g.fillRect(x, y, tileLength.get(), tileLength.get());
 
         Optional<Image> img = getTileImage(row, col);
-        if (img.isPresent()) {
-            System.out.println("Width " + img.get().getWidth());
-            System.out.println("Height " + img.get().getHeight());
-            g.drawImage(img.get(), x, y);
-        }
+        img.ifPresent(image -> g.drawImage(
+                image,
+                x + (tileLength.get() - image.getWidth()) / 2,
+                y + (tileLength.get() - image.getHeight()) / 2));
+    }
+
+    private void drawPaused() {
+        g.setFill(pausedColor);
+        g.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
+
+        g.setFont(new Font(24));
+        g.fillText("Paused", canvas.getWidth() / 2, canvas.getHeight() / 2);
     }
 
     private Optional<Image> getTileImage(int row, int col) {

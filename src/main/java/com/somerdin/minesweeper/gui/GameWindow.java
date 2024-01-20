@@ -1,28 +1,15 @@
 package com.somerdin.minesweeper.gui;
 
-import javafx.animation.AnimationTimer;
-import javafx.beans.binding.Bindings;
-import javafx.beans.property.LongProperty;
-import javafx.beans.property.SimpleLongProperty;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.canvas.Canvas;
 import javafx.scene.control.*;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
-import javafx.stage.Popup;
-import javafx.stage.PopupWindow;
 import javafx.stage.Stage;
-import javafx.util.StringConverter;
 import javafx.util.converter.NumberStringConverter;
 
-import java.io.File;
-import java.util.Formatter;
 import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
 
 public class GameWindow {
     private static final int MIN_SIZE = 4;
@@ -43,7 +30,7 @@ public class GameWindow {
         board = gameBoard;
         timer = new GameTimer();
 
-        timer.bind(board.isRunningProperty());
+        timer.bind(board.isTimerRunningProperty());
 
         borderPane = new BorderPane();
         borderPane.setTop(menuBar());

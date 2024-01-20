@@ -133,6 +133,10 @@ public class Minefield {
         return bombCount;
     }
 
+    public boolean isFirstMove() {
+        return firstMove;
+    }
+
     public int neighborCount(int row, int col) {
         int bombCount = 0;
 
