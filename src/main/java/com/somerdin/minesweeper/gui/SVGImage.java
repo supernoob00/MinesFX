@@ -2,18 +2,21 @@ package com.somerdin.minesweeper.gui;
 
 import com.github.weisj.jsvg.SVGDocument;
 import com.github.weisj.jsvg.attributes.ViewBox;
+import com.github.weisj.jsvg.parser.SVGLoader;
 import javafx.beans.value.ObservableNumberValue;
 import javafx.embed.swing.SwingFXUtils;
-import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.net.URL;
 
 // TODO: only works for square images
 /**
- * Implementation of a JavaFX image, backed by an SVG, that resizes
- * automatically when its bound value changes
+ * Implementation of a JavaFX image, backed by an SVG file, that resizes
+ * automatically when a given bound dimension value changes. An SVG is used to
+ * allow the image to have arbitrarily high resolution; this is necessary
+ * because JavaFX does not natively support SVGs
  */
 public class SVGImage {
     private SVGDocument svg;
@@ -23,26 +26,32 @@ public class SVGImage {
     private int lastSize;
     private double scaleFactor;
 
-    // TODO: change parameter to URL instead of svg document
-    public SVGImage(SVGDocument svgDocument,
-                    ObservableNumberValue observableSize,
+    /**
+     *
+     * @param url the file URL of the SVG to load
+     * @param boundDimension an observable value that propagates any changes
+     * @param scale the scale factor to apply to the bound dimension
+     */
+    public SVGImage(URL url,
+                    ObservableNumberValue boundDimension,
                     double scale) {
         if (scale > 1 || scale <= 0) {
             throw new IllegalArgumentException("Scale factor must be between 0 and 1");
         }
+        SVGLoader loader = new SVGLoader();
+
         scaleFactor = scale;
-        svg = svgDocument;
+        svg = loader.load(url);
 
-        image = new WritableImage(observableSize.intValue(), observableSize.intValue());
-        observable = observableSize;
-        lastSize = observableSize.intValue();
+        image = new WritableImage(boundDimension.intValue(), boundDimension.intValue());
+        observable = boundDimension;
+        lastSize = boundDimension.intValue();
 
-        resize(lastSize, lastSize);
+        convertSVG(lastSize, lastSize);
     }
 
-    public SVGImage(SVGDocument svgDocument,
-                    ObservableNumberValue observableSize) {
-        this(svgDocument, observableSize, 1);
+    public SVGImage(URL url, ObservableNumberValue boundDimension) {
+        this(url, boundDimension, 1);
     }
 
     public SVGDocument getSvg() {
@@ -52,28 +61,33 @@ public class SVGImage {
     public WritableImage getFXImage() {
         if (lastSize != observable.intValue()) {
             int newValue = observable.intValue();
-            resize(newValue, newValue);
+            convertSVG(newValue, newValue);
 
             lastSize = observable.intValue();
         }
         return image;
     }
 
+    /* gets the size of currently cached JavaFX image */
     public double getSize() {
         return observable.doubleValue() * scaleFactor;
     }
 
-    private void resize(int width, int height) {
+    /* sets the
+    public void setScaleFactor(double newFactor) {
+        scaleFactor = newFactor;
+    }
+
+    /* replaces current SVG with one specified from file URL, then replaces current cached JavaFX image */
+    public void setSvg(URL url) {
+        SVGLoader loader = new SVGLoader();
+        svg = loader.load(url);
+        convertSVG(getSize(), getSize());
+    }
+
+    private void convertSVG(double width, double height) {
         int adjustedWidth = (int) (width * scaleFactor);
         int adjustedHeight = (int) (height * scaleFactor);
-
-        System.out.println(scaleFactor);
-
-        System.out.println(height);
-        System.out.println(width);
-
-        System.out.println(adjustedHeight);
-        System.out.println(adjustedWidth);
 
         image = new WritableImage(adjustedWidth, adjustedHeight);
 

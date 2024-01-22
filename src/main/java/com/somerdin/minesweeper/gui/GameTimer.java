@@ -1,8 +1,6 @@
 package com.somerdin.minesweeper.gui;
 
 import javafx.animation.AnimationTimer;
-import javafx.beans.InvalidationListener;
-import javafx.beans.Observable;
 import javafx.beans.property.LongProperty;
 import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.value.ObservableBooleanValue;
@@ -57,7 +55,7 @@ public class GameTimer extends AnimationTimer {
      * is set to true or false, respectively
      * @param boolVal
      */
-    public void bind(ObservableBooleanValue boolVal) {
+    public void bindToIsRunningBoolean(ObservableBooleanValue boolVal) {
         boolVal.addListener((observable, oldVal, newVal) -> {
             assert (newVal != isStarted);
 

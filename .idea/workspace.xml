@@ -5,12 +5,27 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="33651b82-1023-42cd-9981-d500d28a25d3" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/main/resources/themes/cupertino-dark.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/themes/cupertino-light.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/themes/dracula.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/themes/nord-dark.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/themes/nord-light.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/themes/primer-dark.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/themes/primer-light.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/game/Minefield.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/game/Minefield.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/MinesweeperApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/MinesweeperApplication.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/gui/GameBoard.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/gui/GameBoard.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/gui/GameTimer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/gui/GameTimer.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/gui/GameWindow.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/gui/GameWindow.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/gui/SVGImage.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/gui/SVGImage.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/classic/flag.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/classic/flag.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/classic/1mines.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/classic/1mines.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/classic/2mines.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/classic/2mines.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/classic/3mines.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/classic/3mines.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/classic/4mines.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/classic/4mines.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/classic/5mines.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/classic/5mines.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/classic/6mines.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/classic/6mines.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/classic/7mines.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/classic/7mines.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/classic/8mines.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/classic/8mines.svg" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -20,8 +35,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Enum" />
         <option value="Class" />
+        <option value="Enum" />
       </list>
     </option>
   </component>
@@ -48,7 +63,7 @@
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "WebServerToolWindowFactoryState": "false",
     "kotlin.migration.detection.enabled": "false",
-    "last_opened_file_path": "/home/sam/repos/minesweeper/src/test/resources",
+    "last_opened_file_path": "/home/sam/repos/minesweeper/src/main/resources/classic",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -63,6 +78,8 @@
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/main/resources/classic" />
+      <recent name="$PROJECT_DIR$/src/main/resources/themes" />
       <recent name="$PROJECT_DIR$/src/test/resources" />
       <recent name="$PROJECT_DIR$/src/main/resources/com/somerdin/minesweeper" />
     </key>
@@ -132,7 +149,7 @@
       <workItem from="1705190951925" duration="5972000" />
       <workItem from="1705199233945" duration="32521000" />
       <workItem from="1705282582461" duration="9191000" />
-      <workItem from="1705349221688" duration="54907000" />
+      <workItem from="1705349221688" duration="70017000" />
     </task>
     <servers />
   </component>

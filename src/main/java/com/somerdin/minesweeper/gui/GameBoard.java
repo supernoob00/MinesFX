@@ -2,7 +2,6 @@ package com.somerdin.minesweeper.gui;
 
 import com.somerdin.minesweeper.game.*;
 import javafx.beans.property.*;
-import javafx.beans.value.ObservableDoubleValue;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
@@ -11,18 +10,22 @@ import javafx.scene.text.Font;
 import java.util.Optional;
 
 public class GameBoard {
-    private final SVGImage DEFAULT_1;
-    private final SVGImage DEFAULT_2;
-    private final SVGImage DEFAULT_3;
-    private final SVGImage DEFAULT_4;
-    private final SVGImage DEFAULT_5;
-    private final SVGImage DEFAULT_6;
-    private final SVGImage DEFAULT_7;
-    private final SVGImage DEFAULT_8;
-    private final SVGImage DEFAULT_MINE;
-    private final SVGImage DEFAULT_EXPLODED;
-    private final SVGImage DEFAULT_FLAG;
-    private final SVGImage DEFAULT_MAYBE;
+    private final SVGImage img1;
+    private final SVGImage img2;
+    private final SVGImage img3;
+    private final SVGImage img4;
+    private final SVGImage img5;
+    private final SVGImage img6;
+    private final SVGImage img7;
+    private final SVGImage img8;
+    private final SVGImage imgMine;
+    private final SVGImage imgExploded;
+    private final SVGImage imgFlag;
+    private final SVGImage imgMaybe;
+
+    private double scaleFactor = 0.75;
+
+    public BoardTheme currentTheme = BoardTheme.DEFAULT;
 
     private Color bombColor = Color.RED;
     private Color tileColor = Color.LIGHTGRAY;
@@ -53,6 +56,7 @@ public class GameBoard {
 
         gap = 4;
         canvas = new ResizableCanvas();
+
 
         // TODO: create a DelayedChangeListener class to avoid repeated computation
         canvas.widthProperty().addListener((observable, oldVal, newVal) -> {
@@ -109,18 +113,18 @@ public class GameBoard {
         canvas.resize(500, 500);
         g = canvas.getGraphicsContext2D();
 
-        DEFAULT_1 = new SVGImage(BoardImages.DEFAULT_1, tileLength);
-        DEFAULT_2 = new SVGImage(BoardImages.DEFAULT_2, tileLength);
-        DEFAULT_3 = new SVGImage(BoardImages.DEFAULT_3, tileLength);
-        DEFAULT_4 = new SVGImage(BoardImages.DEFAULT_4, tileLength);
-        DEFAULT_5 = new SVGImage(BoardImages.DEFAULT_5, tileLength);
-        DEFAULT_6 = new SVGImage(BoardImages.DEFAULT_6, tileLength);
-        DEFAULT_7 = new SVGImage(BoardImages.DEFAULT_7, tileLength);
-        DEFAULT_8 = new SVGImage(BoardImages.DEFAULT_8, tileLength);
-        DEFAULT_MINE = new SVGImage(BoardImages.DEFAULT_MINE, tileLength);
-        DEFAULT_EXPLODED = new SVGImage(BoardImages.DEFAULT_EXPLODED, tileLength);
-        DEFAULT_FLAG = new SVGImage(BoardImages.DEFAULT_FLAG, tileLength, 0.75);
-        DEFAULT_MAYBE = new SVGImage(BoardImages.DEFAULT_MAYBE, tileLength);
+        img1 = new SVGImage(currentTheme.getURL(Tile.ONE), tileLength, scaleFactor);
+        img2 = new SVGImage(currentTheme.getURL(Tile.TWO), tileLength, scaleFactor);
+        img3 = new SVGImage(currentTheme.getURL(Tile.THREE), tileLength, scaleFactor);
+        img4 = new SVGImage(currentTheme.getURL(Tile.FOUR), tileLength, scaleFactor);
+        img5 = new SVGImage(currentTheme.getURL(Tile.FIVE), tileLength, scaleFactor);
+        img6 = new SVGImage(currentTheme.getURL(Tile.SIX), tileLength, scaleFactor);
+        img7 = new SVGImage(currentTheme.getURL(Tile.SEVEN), tileLength, scaleFactor);
+        img8 = new SVGImage(currentTheme.getURL(Tile.EIGHT), tileLength, scaleFactor);
+        imgMine = new SVGImage(currentTheme.getURL(Tile.MINE), tileLength, scaleFactor);
+        imgExploded = new SVGImage(currentTheme.getURL(Tile.EXPLODED), tileLength, scaleFactor);
+        imgFlag = new SVGImage(currentTheme.getURL(Tile.FLAG), tileLength, scaleFactor);
+        imgMaybe = new SVGImage(currentTheme.getURL(Tile.MAYBE), tileLength, scaleFactor);
 
         draw();
     }
@@ -152,6 +156,23 @@ public class GameBoard {
         }
     }
 
+    public void setTheme(BoardTheme theme) {
+        currentTheme = theme;
+
+        img1.setSvg(theme.getURL(Tile.ONE));
+        img2.setSvg(theme.getURL(Tile.TWO));
+        img3.setSvg(theme.getURL(Tile.THREE));
+        img4.setSvg(theme.getURL(Tile.FOUR));
+        img5.setSvg(theme.getURL(Tile.FIVE));
+        img6.setSvg(theme.getURL(Tile.SIX));
+        img7.setSvg(theme.getURL(Tile.SEVEN));
+        img8.setSvg(theme.getURL(Tile.EIGHT));
+        imgExploded.setSvg(theme.getURL(Tile.EXPLODED));
+        imgFlag.setSvg(theme.getURL(Tile.FLAG));
+        imgMaybe.setSvg(theme.getURL(Tile.MAYBE));
+        imgMine.setSvg(theme.getURL(Tile.MINE));
+    }
+
     public BooleanProperty isTimerRunningProperty() {
         return isTimerRunning;
     }
@@ -164,11 +185,11 @@ public class GameBoard {
         return bombCount;
     }
 
-    private ObservableDoubleValue widthObservable() {
+    public DoubleProperty widthProperty() {
         return canvas.widthProperty();
     }
 
-    private ObservableDoubleValue heightObservable() {
+    public DoubleProperty heightProperty() {
         return canvas.heightProperty();
     }
 
@@ -211,15 +232,15 @@ public class GameBoard {
             case HIDDEN:
                 return Optional.empty();
             case FLAGGED:
-                return Optional.of(DEFAULT_FLAG.getFXImage());
+                return Optional.of(imgFlag.getFXImage());
             case FLAGGED_QUESTION:
-                return Optional.of(DEFAULT_MAYBE.getFXImage());
+                return Optional.of(imgMaybe.getFXImage());
             case REVEALED:
                 if (cell.isBomb()) {
                     if (cell.getBombStatus() == BombStatus.UNDETONATED) {
-                        return Optional.of(DEFAULT_MINE.getFXImage());
+                        return Optional.of(imgMine.getFXImage());
                     }
-                    return Optional.of(DEFAULT_EXPLODED.getFXImage());
+                    return Optional.of(imgExploded.getFXImage());
                 }
 
                 int count = minefield.neighborCount(row, col);
@@ -234,14 +255,14 @@ public class GameBoard {
 
     private Image getNeighborCountImage(int neighborCount) {
         return switch (neighborCount) {
-            case 1 -> DEFAULT_1.getFXImage();
-            case 2 -> DEFAULT_2.getFXImage();
-            case 3 -> DEFAULT_3.getFXImage();
-            case 4 -> DEFAULT_4.getFXImage();
-            case 5 -> DEFAULT_5.getFXImage();
-            case 6 -> DEFAULT_6.getFXImage();
-            case 7 -> DEFAULT_7.getFXImage();
-            case 8 -> DEFAULT_8.getFXImage();
+            case 1 -> img1.getFXImage();
+            case 2 -> img2.getFXImage();
+            case 3 -> img3.getFXImage();
+            case 4 -> img4.getFXImage();
+            case 5 -> img5.getFXImage();
+            case 6 -> img6.getFXImage();
+            case 7 -> img7.getFXImage();
+            case 8 -> img8.getFXImage();
             default -> throw new IllegalArgumentException();
         };
     }

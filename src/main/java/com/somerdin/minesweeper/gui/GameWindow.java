@@ -1,6 +1,7 @@
 package com.somerdin.minesweeper.gui;
 
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -30,12 +31,29 @@ public class GameWindow {
         board = gameBoard;
         timer = new GameTimer();
 
-        timer.bind(board.isTimerRunningProperty());
+        timer.bindToIsRunningBoolean(board.isTimerRunningProperty());
 
         borderPane = new BorderPane();
         borderPane.setTop(menuBar());
-        borderPane.setCenter(centerPane());
-        borderPane.setRight(currentGameInfo());
+
+        BorderPane content = new BorderPane();
+
+        Pane centerPane = centerPane();
+        VBox currentGameInfo = currentGameInfo();
+
+        content.setCenter(centerPane);
+        content.setRight(currentGameInfo);
+
+        Region leftPadding = new Region();
+        leftPadding.prefWidthProperty().bind(currentGameInfo.widthProperty());
+        content.setLeft(leftPadding);
+
+        System.out.println("Width: " + leftPadding.getWidth());
+        System.out.println(currentGameInfo.getWidth());
+
+        content.setPadding(new Insets(16, 16, 16, 16));
+
+        borderPane.setCenter(content);
     }
 
     public void startGame(int rows, int cols, int percent) {
@@ -54,7 +72,6 @@ public class GameWindow {
     /* Info about current game, shown directly next to grid */
     private VBox currentGameInfo() {
         Text timerText = gameTimer();
-        VBox vBox = new VBox();
 
         Text flagsPlacedText = new Text();
         Text separator = new Text("/");
@@ -66,8 +83,18 @@ public class GameWindow {
                 board.bombCountProperty().asString());
 
         HBox flagInfoContainer = new HBox(flagsPlacedText, separator, bombCountText);
+        flagInfoContainer.setAlignment(Pos.CENTER);
 
-        vBox.getChildren().addAll(timerText, flagInfoContainer);
+        VBox textContainer = new VBox(timerText, flagInfoContainer);
+        textContainer.setAlignment(Pos.CENTER);
+
+        Button startPauseButton = new Button("Start");
+        VBox buttonsContainer = new VBox(startPauseButton);
+
+        VBox vBox = new VBox();
+        vBox.getChildren().addAll(textContainer, buttonsContainer);
+        vBox.setAlignment(Pos.CENTER);
+        vBox.setPadding(new Insets(16, 16, 16, 16));
         return vBox;
     }
 
@@ -207,12 +234,14 @@ public class GameWindow {
         Pane centerPane = new Pane(canvas);
         centerPane.widthProperty().addListener(
                 (o, oldWidth, newWidth) -> {
-                    canvas.resize(newWidth.doubleValue(), canvas.getHeight());
+                    double newSize = Math.min(newWidth.doubleValue(), centerPane.getHeight());
+                    canvas.resize(newSize, newSize);
                     board.draw();
                 });
         centerPane.heightProperty().addListener(
                 (o, oldVal, newHeight) -> {
-                    canvas.resize(canvas.getWidth(), newHeight.doubleValue());
+                    double newSize = Math.min(newHeight.doubleValue(), centerPane.getWidth());
+                    canvas.resize(newSize, newSize);
                     board.draw();
                 });
 
