@@ -2,8 +2,10 @@ package com.somerdin.minesweeper.gui;
 
 import com.somerdin.minesweeper.game.*;
 import javafx.beans.property.*;
+import javafx.scene.Cursor;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 
@@ -41,8 +43,8 @@ public class GameBoard {
     // TODO: add padding logic to draw methods
     private double padding;
     private DoubleProperty tileLength = new SimpleDoubleProperty();
+
     private BooleanProperty isTimerRunning = new SimpleBooleanProperty();
-    private BooleanProperty isPaused = new SimpleBooleanProperty(false);
 
     private IntegerProperty flagsPlaced = new SimpleIntegerProperty();
     private IntegerProperty bombCount = new SimpleIntegerProperty();
@@ -65,6 +67,8 @@ public class GameBoard {
         canvas.heightProperty().addListener((observable, oldVal, newVal) -> {
             tileLength.set(tileLength());
         });
+
+        canvas.setCursor(Cursor.HAND);
 
         // make sure closure captures class variable, not argument variable
         canvas.setOnMouseClicked(ev -> {
@@ -138,11 +142,12 @@ public class GameBoard {
         flagsPlaced.set(0);
         bombCount.set(minefield.getBombCount());
         tileLength.set(tileLength());
+        isTimerRunning.set(false);
         draw();
     }
 
     public void draw() {
-        if (!isPaused.get()) {
+        if (!isPaused()) {
             g.setFill(gapColor);
             g.fillRect(0, 0, width(), height());
 
@@ -171,6 +176,22 @@ public class GameBoard {
         imgFlag.setSvg(theme.getURL(Tile.FLAG));
         imgMaybe.setSvg(theme.getURL(Tile.MAYBE));
         imgMine.setSvg(theme.getURL(Tile.MINE));
+    }
+
+    public int getRowCount() {
+        return minefield.rowCount();
+    }
+
+    public int getColCount() {
+        return minefield.colCount();
+    }
+
+    public int getPercentBomb() {
+        return minefield.getPercentBomb();
+    }
+
+    public boolean isPaused() {
+        return !isTimerRunning.get() && !minefield.isFirstMove();
     }
 
     public BooleanProperty isTimerRunningProperty() {

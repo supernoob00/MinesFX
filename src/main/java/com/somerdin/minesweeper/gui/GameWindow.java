@@ -56,13 +56,16 @@ public class GameWindow {
         borderPane.setCenter(content);
     }
 
+    /* start new game with specified settings */
     public void startGame(int rows, int cols, int percent) {
-        if (timer.isStarted()) {
-            throw new IllegalStateException("Game is already started.");
-        }
         timer.stop();
         timer.reset();
         board.startNewGame(rows, cols, percent);
+    }
+
+    /* start new game with current settings */
+    public void startGame() {
+        startGame(board.getRowCount(), board.getColCount(), board.getPercentBomb());
     }
 
     public BorderPane getBorderPane() {
@@ -71,8 +74,10 @@ public class GameWindow {
 
     /* Info about current game, shown directly next to grid */
     private VBox currentGameInfo() {
+        // game timer text
         Text timerText = gameTimer();
 
+        // current flag and bomb count text
         Text flagsPlacedText = new Text();
         Text separator = new Text("/");
         Text bombCountText = new Text();
@@ -81,14 +86,19 @@ public class GameWindow {
                 board.flagsPlacedProperty().asString());
         bombCountText.textProperty().bind(
                 board.bombCountProperty().asString());
-
         HBox flagInfoContainer = new HBox(flagsPlacedText, separator, bombCountText);
         flagInfoContainer.setAlignment(Pos.CENTER);
 
+        // container for game time and flag/bomb count text
         VBox textContainer = new VBox(timerText, flagInfoContainer);
         textContainer.setAlignment(Pos.CENTER);
 
+        // container for buttons
         Button startPauseButton = new Button("Start");
+        startPauseButton.setOnAction(ev -> {
+            startGame();
+        });
+
         VBox buttonsContainer = new VBox(startPauseButton);
 
         VBox vBox = new VBox();

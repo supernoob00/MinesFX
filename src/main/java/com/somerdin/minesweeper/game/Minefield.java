@@ -17,31 +17,34 @@ public class Minefield {
     private boolean firstMove;
     private GameResult result;
 
+    private int percentBomb;
+
     public Minefield(int rows,
                      int cols,
-                     int percentBomb,
+                     int percent,
                      boolean startZero,
                      int fillBlocks) {
 
     }
 
     /* create a randomly-generated minefield of given size and bomb density */
-    public Minefield(int rows, int cols, int percentBomb) {
+    public Minefield(int rows, int cols, int percent) {
         if (rows < 4 || cols < 4 || rows > 100 || cols > 100) {
             throw new IllegalArgumentException("Row and column count must be between 4 and 100");
         }
-        if (percentBomb < 0 || percentBomb > 99) {
+        if (percent < 0 || percent > 99) {
             throw new IllegalArgumentException("Invalid bomb ratio");
         }
 
         firstMove = true;
         result = GameResult.IN_PROGRESS;
+        percentBomb = percent;
 
         int tiles = rows * cols;
         // TODO: use JDK21 Math.clamp() method instead
         int bombsToPlace = Math.min(
                 rows * cols - 9,
-                Math.max(1, (int) (tiles * ((double) percentBomb / 100))));
+                Math.max(1, (int) (tiles * ((double) percent / 100))));
 
         // set class fields
         grid = new Cell[rows][cols];
@@ -163,6 +166,10 @@ public class Minefield {
 
     public int colCount() {
         return grid[0].length;
+    }
+
+    public int getPercentBomb() {
+        return percentBomb;
     }
 
     @Override
