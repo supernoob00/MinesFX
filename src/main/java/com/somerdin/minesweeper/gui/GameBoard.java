@@ -44,15 +44,19 @@ public class GameBoard {
     private double padding;
     private DoubleProperty tileLength = new SimpleDoubleProperty();
 
-    private BooleanProperty isTimerRunning = new SimpleBooleanProperty();
+    private BooleanProperty firstMove = new SimpleBooleanProperty();
 
     private IntegerProperty flagsPlaced = new SimpleIntegerProperty();
     private IntegerProperty bombCount = new SimpleIntegerProperty();
 
+    private GameTimer gameTimer;
     private Minefield minefield;
 
-    public GameBoard(Minefield field) {
+    public GameBoard(Minefield field, GameTimer timer) {
+        gameTimer = timer;
         minefield = field;
+
+        firstMove.set(field.isFirstMove());
 
         bombCount.set(minefield.getBombCount());
 
@@ -83,15 +87,17 @@ public class GameBoard {
             Cell selectedCell = minefield.getCell(row, col);
             switch (ev.getButton()) {
                 case PRIMARY:
+                    firstMove.set(false);
                     if (selectedCell.getCellStatus() != CellStatus.REVEALED) {
                         minefield.chooseCell(row, col);
 
-                        if (!isTimerRunning.get()) {
-                            isTimerRunning.set(true);
+                        if (!gameTimer.isRunning()) {
+                            System.out.println("Timer started");
+                            gameTimer.isRunningProperty().set(true);
                         }
 
                         switch (minefield.getResult()) {
-                            case GAME_WON, GAME_LOST -> isTimerRunningProperty().set(false);
+                            case GAME_WON, GAME_LOST -> gameTimer.isRunningProperty().set(false);
                         }
                         draw();
                     }
@@ -139,15 +145,16 @@ public class GameBoard {
 
     public void startNewGame(int rows, int cols, int percent) {
         minefield = new Minefield(rows, cols, percent);
+        firstMove.set(true);
         flagsPlaced.set(0);
         bombCount.set(minefield.getBombCount());
         tileLength.set(tileLength());
-        isTimerRunning.set(false);
+        gameTimer.isRunningProperty().set(false);
         draw();
     }
 
     public void draw() {
-        if (!isPaused()) {
+        if (gameTimer.isRunning() || minefield.isFirstMove()) {
             g.setFill(gapColor);
             g.fillRect(0, 0, width(), height());
 
@@ -190,20 +197,16 @@ public class GameBoard {
         return minefield.getPercentBomb();
     }
 
-    public boolean isPaused() {
-        return !isTimerRunning.get() && !minefield.isFirstMove();
-    }
-
-    public BooleanProperty isTimerRunningProperty() {
-        return isTimerRunning;
-    }
-
     public IntegerProperty flagsPlacedProperty() {
         return flagsPlaced;
     }
 
     public IntegerProperty bombCountProperty() {
         return bombCount;
+    }
+
+    public BooleanProperty isFirstMoveProperty() {
+        return firstMove;
     }
 
     public DoubleProperty widthProperty() {

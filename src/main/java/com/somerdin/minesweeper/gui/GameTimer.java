@@ -1,16 +1,28 @@
 package com.somerdin.minesweeper.gui;
 
 import javafx.animation.AnimationTimer;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.LongProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleLongProperty;
-import javafx.beans.value.ObservableBooleanValue;
 
 public class GameTimer extends AnimationTimer {
-    private boolean isStarted;
+    private BooleanProperty isRunning;
     private long lastTime;
     private LongProperty elapsedTime;
 
     public GameTimer() {
+        isRunning = new SimpleBooleanProperty();
+        isRunning.addListener((observable, oldVal, newVal) -> {
+//          assert (newVal != isRunning.get());
+
+            if (newVal) {
+                start();
+            } else {
+                stop();
+            }
+        });
+
         elapsedTime = new SimpleLongProperty(0);
     }
 
@@ -22,14 +34,14 @@ public class GameTimer extends AnimationTimer {
 
     @Override
     public void start() {
-        isStarted = true;
+        isRunning.set(true);
         lastTime = System.nanoTime();
         super.start();
     }
 
     @Override
     public void stop() {
-        isStarted = false;
+        isRunning.set(false);
         super.stop();
     }
 
@@ -38,8 +50,12 @@ public class GameTimer extends AnimationTimer {
         elapsedTime.set(0);
     }
 
-    public boolean isStarted() {
-        return isStarted;
+    public BooleanProperty isRunningProperty() {
+        return isRunning;
+    }
+
+    public boolean isRunning() {
+        return isRunning.get();
     }
 
     public LongProperty getElapsedTimeProperty() {
@@ -48,22 +64,5 @@ public class GameTimer extends AnimationTimer {
 
     public int getElapsedTimeSeconds() {
         return (int) (elapsedTime.get() / 1E9);
-    }
-
-    /**
-     * make timer start or stop automatically when observed boolean value
-     * is set to true or false, respectively
-     * @param boolVal
-     */
-    public void bindToIsRunningBoolean(ObservableBooleanValue boolVal) {
-        boolVal.addListener((observable, oldVal, newVal) -> {
-            assert (newVal != isStarted);
-
-            if (newVal) {
-                start();
-            } else {
-                stop();
-            }
-        });
     }
 }

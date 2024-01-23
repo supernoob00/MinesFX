@@ -21,17 +21,15 @@ public class GameWindow {
 
     private GameBoard board;
     private BorderPane borderPane;
-    private GameTimer timer;
+    private GameTimer gameTimer;
 
     private Stage parentStage;
 
-    public GameWindow(Stage parent, GameBoard gameBoard) {
+    public GameWindow(Stage parent, GameBoard gameBoard, GameTimer timer) {
         parentStage = parent;
 
         board = gameBoard;
-        timer = new GameTimer();
-
-        timer.bindToIsRunningBoolean(board.isTimerRunningProperty());
+        gameTimer = timer;
 
         borderPane = new BorderPane();
         borderPane.setTop(menuBar());
@@ -58,8 +56,8 @@ public class GameWindow {
 
     /* start new game with specified settings */
     public void startGame(int rows, int cols, int percent) {
-        timer.stop();
-        timer.reset();
+        gameTimer.stop();
+        gameTimer.reset();
         board.startNewGame(rows, cols, percent);
     }
 
@@ -94,12 +92,19 @@ public class GameWindow {
         textContainer.setAlignment(Pos.CENTER);
 
         // container for buttons
-        Button startPauseButton = new Button("Start");
-        startPauseButton.setOnAction(ev -> {
-            startGame();
+        Button pauseButton = new Button("Pause");
+
+        pauseButton.disableProperty().bind(board.isFirstMoveProperty());
+
+        pauseButton.setOnAction(ev -> {
+            if (gameTimer.isRunning()) {
+                gameTimer.stop();
+            } else {
+                gameTimer.start();
+            }
         });
 
-        VBox buttonsContainer = new VBox(startPauseButton);
+        VBox buttonsContainer = new VBox(pauseButton);
 
         VBox vBox = new VBox();
         vBox.getChildren().addAll(textContainer, buttonsContainer);
@@ -129,7 +134,7 @@ public class GameWindow {
             }
         };
         text.textProperty().bindBidirectional(
-                timer.getElapsedTimeProperty(), converter);
+                gameTimer.getElapsedTimeProperty(), converter);
         return text;
     }
 
