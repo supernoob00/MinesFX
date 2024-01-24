@@ -1,6 +1,10 @@
 package com.somerdin.minesweeper.gui;
 
+import com.somerdin.minesweeper.MinesweeperApplication;
+import javafx.application.Application;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -14,11 +18,16 @@ import javafx.util.converter.NumberStringConverter;
 import java.util.function.Supplier;
 
 public class GameWindow {
+    public static final String LIGHT_MODE = MinesweeperApplication.class.getResource("/themes/cupertino-light.css").toExternalForm();
+    public static final String DARK_MODE = MinesweeperApplication.class.getResource("/themes/dracula.css").toExternalForm();
+
     private static final int MIN_SIZE = 4;
     private static final int MAX_SIZE = 80;
 
     private static final int MIN_BOMB_PERCENT = 1;
     private static final int MAX_BOMB_PERCENT = 99;
+
+    private BooleanProperty darkMode = new SimpleBooleanProperty();
 
     private GameBoard board;
     private BorderPane borderPane;
@@ -32,25 +41,23 @@ public class GameWindow {
         board = gameBoard;
         gameTimer = timer;
 
+        // use a border pane as the root node; top is the menu bar and center
+        // is everything else
         borderPane = new BorderPane();
         borderPane.setTop(menuBar());
 
-        BorderPane content = new BorderPane();
+        // everything that's not the top menu bar
+        HBox content = new HBox();
 
         Pane centerPane = centerPane();
         VBox currentGameInfo = currentGameInfo();
 
-        content.setCenter(centerPane);
-        content.setRight(currentGameInfo);
-
         Region leftPadding = new Region();
         leftPadding.prefWidthProperty().bind(currentGameInfo.widthProperty());
-        content.setLeft(leftPadding);
 
-        System.out.println("Width: " + leftPadding.getWidth());
-        System.out.println(currentGameInfo.getWidth());
-
-        content.setPadding(new Insets(16, 16, 16, 16));
+        content.getChildren().addAll(leftPadding, centerPane, currentGameInfo);
+        HBox.setHgrow(centerPane, Priority.ALWAYS);
+        HBox.setHgrow(currentGameInfo, Priority.ALWAYS);
 
         borderPane.setCenter(content);
     }
@@ -71,25 +78,22 @@ public class GameWindow {
         return borderPane;
     }
 
+    public void toggleTheme() {
+        if (darkMode.get()) {
+            Application.setUserAgentStylesheet(LIGHT_MODE);
+        } else {
+            Application.setUserAgentStylesheet(DARK_MODE);
+        }
+        darkMode.set(!darkMode.get());
+    }
+
     /* Info about current game, shown directly next to grid */
     private VBox currentGameInfo() {
         // game timer text
         Text timerText = gameTimer();
 
-        // current flag and bomb count text
-        Text flagsPlacedText = new Text();
-        Text separator = new Text("/");
-        Text bombCountText = new Text();
-
-        flagsPlacedText.textProperty().bind(
-                board.flagsPlacedProperty().asString());
-        bombCountText.textProperty().bind(
-                board.bombCountProperty().asString());
-        HBox flagInfoContainer = new HBox(flagsPlacedText, separator, bombCountText);
-        flagInfoContainer.setAlignment(Pos.CENTER);
-
         // container for game time and flag/bomb count text
-        VBox textContainer = new VBox(timerText, flagInfoContainer);
+        VBox textContainer = new VBox(timerText, flagInfo());
         textContainer.setAlignment(Pos.CENTER);
 
         // container for buttons
@@ -99,7 +103,7 @@ public class GameWindow {
 
         VBox vBox = new VBox();
         vBox.getChildren().addAll(textContainer, buttonsContainer);
-        vBox.setAlignment(Pos.CENTER);
+        vBox.setAlignment(Pos.CENTER_LEFT);
         vBox.setPadding(new Insets(16, 16, 16, 16));
         return vBox;
     }
@@ -129,6 +133,20 @@ public class GameWindow {
         return text;
     }
 
+    private HBox flagInfo() {
+        Text flagsPlacedText = new Text();
+        Text separator = new Text("/");
+        Text bombCountText = new Text();
+
+        flagsPlacedText.textProperty().bind(
+                board.flaggedCountProperty().asString());
+        bombCountText.textProperty().bind(
+                board.bombCountProperty().asString());
+        HBox flagInfoContainer = new HBox(flagsPlacedText, separator, bombCountText);
+        flagInfoContainer.setAlignment(Pos.CENTER);
+        return flagInfoContainer;
+    }
+
     private Button pauseButton() {
         Button pauseButton = new Button("Pause");
 
@@ -153,15 +171,34 @@ public class GameWindow {
         Button restartButton = new Button("Restart");
         restartButton.visibleProperty().bind(board.isFirstMoveProperty().not());
         restartButton.setOnAction(ev -> {
-            startGame();
+            if (board.inProgressProperty().get()) {
+                Alert alert = new Alert(
+                        Alert.AlertType.NONE,
+                        "Are you sure you want to start a new game?",
+                        ButtonType.NO,
+                        ButtonType.OK);
+                alert.setTitle("Confirmation");
+                alert.showAndWait().ifPresent((response) -> {
+                    if (response == ButtonType.OK) {
+                        startGame();
+                    }
+                });
+            } else {
+                startGame();
+            }
         });
         restartButton.setFocusTraversable(false);
         return restartButton;
     }
 
     private MenuBar menuBar() {
+        CheckMenuItem changeTheme = new CheckMenuItem("Dark Mode");
+        changeTheme.setOnAction(ev -> {
+            toggleTheme();
+        });
+
         Menu optionsMenu = new Menu("Options");
-        optionsMenu.getItems().add(difficultyMenu());
+        optionsMenu.getItems().addAll(difficultyMenu(), changeTheme);
 
         Menu gameMenu = new Menu("Game");
 
@@ -203,9 +240,9 @@ public class GameWindow {
     private Stage customDifficultyOptions() {
         // create custom difficulty menu option and popup
         GridPane vBox = new GridPane();
-        vBox.setHgap(30);
-        vBox.setVgap(30);
-        vBox.setPadding(new Insets(50, 50, 50, 50));
+        vBox.setHgap(24);
+        vBox.setVgap(24);
+        vBox.setPadding(new Insets(36, 36, 36, 36));
 
         // text formatter to only allow numeric inputs to spinner fields
         // TODO: add value binding, which is the integer value of the string

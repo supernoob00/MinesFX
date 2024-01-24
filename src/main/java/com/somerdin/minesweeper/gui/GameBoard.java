@@ -27,12 +27,7 @@ public class GameBoard {
     private double scaleFactor = 0.75;
 
     public BoardTheme currentTheme = BoardTheme.DEFAULT;
-
-    private Color bombColor = Color.RED;
-    private Color tileColor = Color.LIGHTGRAY;
-    private Color revealedTileColor = Color.WHITESMOKE;
-    private Color gapColor = Color.GREY;
-    private Color pausedColor = Color.WHEAT;
+    private ColorTheme colorTheme = ColorTheme.DEFAULT;
 
     private final ResizableCanvas canvas;
     private final GraphicsContext g;
@@ -42,8 +37,6 @@ public class GameBoard {
     // TODO: add padding logic to draw methods
     private double padding;
     private DoubleProperty tileLength = new SimpleDoubleProperty();
-
-    private IntegerProperty flagsPlaced = new SimpleIntegerProperty();
     private BooleanProperty inProgress = new SimpleBooleanProperty();
 
     private GameTimer gameTimer;
@@ -65,7 +58,7 @@ public class GameBoard {
         });
 
         canvas.setCursor(Cursor.HAND);
-        timer.isPausedProperty().addListener((observable, oldValue, newValue) -> {
+        timer.pausedProperty().addListener((observable, oldValue, newValue) -> {
             canvas.setCursor(newValue ? Cursor.DEFAULT : Cursor.HAND);
         });
 
@@ -75,7 +68,7 @@ public class GameBoard {
             int col = getCol(ev.getX());
 
             if (row == -1 || col == -1
-                    || minefield.getResultProperty().get() != GameResult.IN_PROGRESS
+                    || minefield.gameResultProperty().get() != GameResult.IN_PROGRESS
                     || gameTimer.isPaused()) {
                 return;
             }
@@ -92,7 +85,7 @@ public class GameBoard {
                             gameTimer.start();
                         }
 
-                        switch (minefield.getResultProperty().get()) {
+                        switch (minefield.getGameResult()) {
                             case GAME_WON, GAME_LOST -> {
                                 inProgress.set(false);
                                 gameTimer.stop();
@@ -105,12 +98,6 @@ public class GameBoard {
                     if (selectedCell.getCellStatus() != CellStatus.REVEALED) {
                         CellStatus oldStatus = selectedCell.getCellStatus();
                         minefield.toggleFlag(row, col);
-                        if (selectedCell.getCellStatus() == CellStatus.FLAGGED) {
-                            flagsPlaced.set(flagsPlaced.get() + 1);
-                        } else if (oldStatus == CellStatus.FLAGGED) {
-                            flagsPlaced.set(flagsPlaced.get() - 1);
-                        }
-                        System.out.println(flagsPlaced.get());
                         draw();
                     }
                     break;
@@ -145,16 +132,16 @@ public class GameBoard {
     public void startNewGame(int rows, int cols, int percent) {
         minefield.startNewGame(rows, cols, percent);
         inProgress.set(false);
-        flagsPlaced.set(0);
+        minefield.flaggedCountProperty().set(0);
         tileLength.set(tileLength());
-        gameTimer.isPausedProperty().set(false);
+        gameTimer.pausedProperty().set(false);
         gameTimer.isRunningProperty().set(false);
         draw();
     }
 
     public void draw() {
         if (!gameTimer.isPaused()) {
-            g.setFill(gapColor);
+            g.setFill(colorTheme.getGapColor());
             g.fillRect(0, 0, width(), height());
 
             for (int i = 0; i < rows(); i++) {
@@ -196,12 +183,12 @@ public class GameBoard {
         return minefield.getPercentBomb();
     }
 
-    public IntegerProperty flagsPlacedProperty() {
-        return flagsPlaced;
+    public IntegerProperty flaggedCountProperty() {
+        return minefield.flaggedCountProperty();
     }
 
     public IntegerProperty bombCountProperty() {
-        return minefield.getBombCountProperty();
+        return minefield.bombCountProperty();
     }
 
     public BooleanProperty inProgressProperty() {
@@ -209,7 +196,7 @@ public class GameBoard {
     }
 
     public BooleanProperty isFirstMoveProperty() {
-        return minefield.isFirstMoveProperty();
+        return minefield.firstMoveProperty();
     }
 
     public DoubleProperty widthProperty() {
@@ -224,18 +211,18 @@ public class GameBoard {
         Cell cell = minefield.getCell(row, col);
         if (cell.getCellStatus() == CellStatus.REVEALED) {
             if (cell.getBombStatus() == BombStatus.DETONATED) {
-                g.setFill(bombColor);
+                g.setFill(colorTheme.getBombColor());
             } else {
-                g.setFill(revealedTileColor);
+                g.setFill(colorTheme.getRevealedTileColor());
             }
         } else {
-            g.setFill(tileColor);
+            g.setFill(colorTheme.getTileColor());
         }
 
         double x = cellCornerX(col);
         double y = cellCornerY(row);
 
-        g.fillRect(x, y, tileLength.get(), tileLength.get());
+        g.fillRoundRect(x, y, tileLength.get(), tileLength.get(), 10, 10);
 
         Optional<Image> img = getTileImage(row, col);
         img.ifPresent(image -> g.drawImage(
@@ -245,10 +232,11 @@ public class GameBoard {
     }
 
     private void drawPaused() {
-        g.setFill(pausedColor);
+        g.setFill(colorTheme.getPausedColor());
         g.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
 
         g.setFont(new Font(24));
+        g.setFill(Color.BLACK);
         g.fillText("Paused", canvas.getWidth() / 2, canvas.getHeight() / 2);
     }
 

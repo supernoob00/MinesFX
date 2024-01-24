@@ -33,7 +33,7 @@ public class MinesweeperApplication extends Application {
     }
 
     public static void main(String[] args) {
-        Application.setUserAgentStylesheet(MinesweeperApplication.class.getResource("/themes/cupertino-light.css").toExternalForm());
+        Application.setUserAgentStylesheet(GameWindow.LIGHT_MODE);
         Application.launch();
     }
 }

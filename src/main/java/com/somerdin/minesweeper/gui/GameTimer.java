@@ -47,7 +47,7 @@ public class GameTimer extends AnimationTimer {
         super.stop();
     }
 
-    public BooleanProperty isPausedProperty() {
+    public BooleanProperty pausedProperty() {
         return isPaused;
     }
 

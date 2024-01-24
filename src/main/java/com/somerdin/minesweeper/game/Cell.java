@@ -6,9 +6,9 @@ public class Cell {
     private CellStatus cellStatus;
     private BombStatus bombStatus;
 
-    public Cell(boolean isBomb, CellStatus cs) {
-        bombStatus = isBomb ? BombStatus.UNDETONATED : BombStatus.NONE;
-        cellStatus = cs;
+    public Cell(CellStatus cellStatus, boolean bombStatus) {
+        this.cellStatus = cellStatus;
+        this.bombStatus = bombStatus ? BombStatus.UNDETONATED : BombStatus.NONE;
     }
 
     public boolean isBomb() {
@@ -23,15 +23,15 @@ public class Cell {
         return bombStatus;
     }
 
-    public void setBombStatus(BombStatus bs) {
-        bombStatus = bs;
+    public void setBombStatus(BombStatus status) {
+        bombStatus = status;
     }
 
     public CellStatus getCellStatus() {
         return cellStatus;
     }
 
-    public void setCellStatus(CellStatus newState) {
-        cellStatus = newState;
+    public void setCellStatus(CellStatus status) {
+        cellStatus = status;
     }
 }

@@ -9,15 +9,17 @@ import java.util.Queue;
 public class Minefield {
     private static final int BOMB_CELL = -1;
 
+    // controls whether first tile clicked always has zero neighbors
     private boolean isStartZero = true;
 
     private final IntegerProperty bombCount = new SimpleIntegerProperty();
+    private final IntegerProperty flaggedCount = new SimpleIntegerProperty();
     private final IntegerProperty revealCount = new SimpleIntegerProperty();
     private final BooleanProperty firstMove = new SimpleBooleanProperty(true);
     private final ObjectProperty<GameResult> result = new SimpleObjectProperty<>();
 
     private Cell[][] grid;
-    private int[][] bombValues; // number of neighbors that contain bomb (0-8, or BOMB_CELL if tile itself is a bomb)
+    private int[][] neighborCounts; // number of neighbors that contain bomb (0-8, or BOMB_CELL if tile itself is a bomb)
 
     private int percentBomb;
 
@@ -52,7 +54,7 @@ public class Minefield {
             }
 
             grid = new Cell[rows][cols];
-            bombValues = new int[rows][cols];
+            neighborCounts = new int[rows][cols];
 
             int c;
             int i = 0, j = 0;
@@ -63,18 +65,18 @@ public class Minefield {
                         i++;
                         break;
                     case 'B': // revealed bomb
-                        grid[i][j] = new Cell(false, CellStatus.REVEALED);
+                        grid[i][j] = new Cell(CellStatus.REVEALED, false);
                         addBomb(i, j);
                         break;
                     case 'b': // hidden bomb
-                        grid[i][j] = new Cell(false, CellStatus.HIDDEN);
+                        grid[i][j] = new Cell(CellStatus.HIDDEN, false);
                         addBomb(i, j);
                         break;
                     case '#': // hidden, no bomb
-                        grid[i][j] = new Cell(false, CellStatus.HIDDEN);
+                        grid[i][j] = new Cell(CellStatus.HIDDEN, false);
                         break;
                     case 'X': // revealed, no bomb
-                        grid[i][j] = new Cell(false, CellStatus.REVEALED);
+                        grid[i][j] = new Cell(CellStatus.REVEALED, false);
                         break;
                     default:
                         break;
@@ -108,24 +110,24 @@ public class Minefield {
 
         // set class fields
         grid = new Cell[rows][cols];
-        bombValues = new int[rows][cols];
+        neighborCounts = new int[rows][cols];
 
         // mark bomb neighbor values matrix with bombs, then shuffle
         for (int i = 0; i < bombsToPlace; i++) {
             int row = i / cols;
             int col = i % cols;
 
-            bombValues[row][col] = BOMB_CELL;
+            neighborCounts[row][col] = BOMB_CELL;
         }
-        shuffle2DArray(bombValues);
+        shuffle2DArray(neighborCounts);
 
         // fill grid with either empty or bomb cells, using neighbor values
         // matrix as the guide
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                grid[i][j] = new Cell(false, CellStatus.HIDDEN);
+                grid[i][j] = new Cell(CellStatus.HIDDEN, false);
 
-                if (bombValues[i][j] == BOMB_CELL) {
+                if (neighborCounts[i][j] == BOMB_CELL) {
                     addBomb(i, j);
                 }
             }
@@ -136,16 +138,36 @@ public class Minefield {
         return grid[row][col];
     }
 
-    public ObjectProperty<GameResult> getResultProperty() {
+    public ObjectProperty<GameResult> gameResultProperty() {
         return result;
     }
 
-    public IntegerProperty getBombCountProperty() {
+    public GameResult getGameResult() {
+        return result.get();
+    }
+
+    public IntegerProperty bombCountProperty() {
         return bombCount;
     }
 
-    public BooleanProperty isFirstMoveProperty() {
+    public int getBombCount() {
+        return bombCount.get();
+    }
+
+    public IntegerProperty flaggedCountProperty() {
+        return flaggedCount;
+    }
+
+    public int getFlaggedCount() {
+        return flaggedCount.get();
+    }
+
+    public BooleanProperty firstMoveProperty() {
         return firstMove;
+    }
+
+    public boolean getFirstMove() {
+        return firstMove.get();
     }
 
     public int neighborCount(int row, int col) {
@@ -159,13 +181,6 @@ public class Minefield {
             }
         }
         return bombCount;
-    }
-
-    /* returns true if cells are neighbors; cells cannot be the same */
-    public boolean areNeighbors(int i1, int j1, int i2, int j2) {
-        int rowDiff = i1 - i2;
-        int colDiff = j1 - j2;
-        return rowDiff >= -1 && rowDiff <= 1 && colDiff >= -1 && colDiff <= 1;
     }
 
     public int rowCount() {
@@ -199,12 +214,12 @@ public class Minefield {
         assert !grid[row][col].isBomb();
 
         grid[row][col].setBomb(true);
-        bombValues[row][col] = BOMB_CELL;
+        neighborCounts[row][col] = BOMB_CELL;
 
         for (int i = row - 1; i <= row + 1; i++) {
             for (int j = col - 1; j <= col + 1; j++) {
-                if (validCell(i, j) && bombValues[i][j] != BOMB_CELL){
-                    bombValues[i][j]++;
+                if (validCell(i, j) && neighborCounts[i][j] != BOMB_CELL){
+                    neighborCounts[i][j]++;
                 }
             }
         }
@@ -214,15 +229,15 @@ public class Minefield {
     public void removeBomb(int row, int col) {
         assert grid[row][col].isBomb();
 
-        bombValues[row][col] = 1;
+        neighborCounts[row][col] = 1;
 
         for (int i = row - 1; i <= row + 1; i++) {
             for (int j = col - 1; j <= col + 1; j++) {
                 if (validCell(i, j)){
-                    if (bombValues[i][j] != BOMB_CELL) {
-                        bombValues[i][j]--;
+                    if (neighborCounts[i][j] != BOMB_CELL) {
+                        neighborCounts[i][j]--;
                     } else {
-                        bombValues[row][col]++;
+                        neighborCounts[row][col]++;
                     }
                 }
             }
@@ -257,6 +272,7 @@ public class Minefield {
 
         revealArea(row, col);
         if (revealCount.get() == rowCount() * colCount() - bombCount.get()) {
+            flagAllBombs();
             result.set(GameResult.GAME_WON);
         }
     }
@@ -266,8 +282,14 @@ public class Minefield {
 
         Cell cell = grid[row][col];
         switch (cell.getCellStatus()) {
-            case HIDDEN -> cell.setCellStatus(CellStatus.FLAGGED);
-            case FLAGGED -> cell.setCellStatus(CellStatus.FLAGGED_QUESTION);
+            case HIDDEN -> {
+                cell.setCellStatus(CellStatus.FLAGGED);
+                flaggedCount.set(flaggedCount.get() + 1);
+            }
+            case FLAGGED -> {
+                cell.setCellStatus(CellStatus.FLAGGED_QUESTION);
+                flaggedCount.set(flaggedCount.get() - 1);
+            }
             case FLAGGED_QUESTION -> cell.setCellStatus(CellStatus.HIDDEN);
             default -> throw new IllegalStateException("Can't toggle flag for this cell");
         }
@@ -279,9 +301,31 @@ public class Minefield {
         assert cell.getCellStatus() != CellStatus.REVEALED;
         assert !cell.isBomb();
 
+        if (cell.getCellStatus() == CellStatus.FLAGGED) {
+            flaggedCount.set(flaggedCount.get() - 1);
+        }
 
         cell.setCellStatus(CellStatus.REVEALED);
         revealCount.set(revealCount.get() + 1);
+    }
+
+    /* returns true if cells are neighbors; cells cannot be the same */
+    private boolean areNeighbors(int i1, int j1, int i2, int j2) {
+        int rowDiff = i1 - i2;
+        int colDiff = j1 - j2;
+        return rowDiff >= -1 && rowDiff <= 1 && colDiff >= -1 && colDiff <= 1;
+    }
+
+    private void flagAllBombs() {
+        for (int i = 0; i < rowCount(); i++) {
+            for (int j = 0; j < colCount(); j++) {
+                Cell cell = grid[i][j];
+                if (cell.isBomb()) {
+                    cell.setCellStatus(CellStatus.FLAGGED);
+                    flaggedCount.set(flaggedCount.get() + 1);
+                }
+            }
+        }
     }
 
     /* moves bomb at specified cell to first empty cell from top left */
@@ -320,7 +364,7 @@ public class Minefield {
         }
     }
 
-    public void moveStartingNeighbors(int row, int col) {
+    private void moveStartingNeighbors(int row, int col) {
         for (int i = row - 1; i <= row + 1; i++) {
             for (int j = col - 1; j <= col + 1; j++) {
                 if (validCell(i, j) && grid[i][j].isBomb()){
@@ -331,7 +375,7 @@ public class Minefield {
         }
     }
 
-    public void revealAll() {
+    private void revealAll() {
         for (int i = 0; i < rowCount(); i++) {
             for (int j = 0; j < colCount(); j++) {
                 revealCell(i, j);
@@ -340,9 +384,9 @@ public class Minefield {
     }
 
     private void revealArea(int row, int col) {
-        assert bombValues[row][col] != -1;
+        assert neighborCounts[row][col] != -1;
 
-        if (bombValues[row][col] != 0) {
+        if (neighborCounts[row][col] != 0) {
             revealCell(row, col);
             return;
         }
@@ -365,7 +409,7 @@ public class Minefield {
                             && !cell.isBomb()){
                         revealCell(i, j);
 
-                        if (bombValues[i][j] == 0) {
+                        if (neighborCounts[i][j] == 0) {
                             rowQueue.add(i);
                             colQueue.add(j);
                         }
@@ -391,7 +435,7 @@ public class Minefield {
             if (cell.isBomb()) {
                 c = 'B';
             } else {
-                c = (char) (bombValues[row][col] + '0');
+                c = (char) (neighborCounts[row][col] + '0');
             }
         }
         return c;
