@@ -5,7 +5,6 @@ import javafx.beans.property.*;
 import javafx.scene.Cursor;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 
@@ -44,10 +43,8 @@ public class GameBoard {
     private double padding;
     private DoubleProperty tileLength = new SimpleDoubleProperty();
 
-    private BooleanProperty firstMove = new SimpleBooleanProperty();
-
     private IntegerProperty flagsPlaced = new SimpleIntegerProperty();
-    private IntegerProperty bombCount = new SimpleIntegerProperty();
+    private BooleanProperty inProgress = new SimpleBooleanProperty();
 
     private GameTimer gameTimer;
     private Minefield minefield;
@@ -56,13 +53,8 @@ public class GameBoard {
         gameTimer = timer;
         minefield = field;
 
-        firstMove.set(field.isFirstMove());
-
-        bombCount.set(minefield.getBombCount());
-
         gap = 4;
         canvas = new ResizableCanvas();
-
 
         // TODO: create a DelayedChangeListener class to avoid repeated computation
         canvas.widthProperty().addListener((observable, oldVal, newVal) -> {
@@ -73,6 +65,9 @@ public class GameBoard {
         });
 
         canvas.setCursor(Cursor.HAND);
+        timer.isPausedProperty().addListener((observable, oldValue, newValue) -> {
+            canvas.setCursor(newValue ? Cursor.DEFAULT : Cursor.HAND);
+        });
 
         // make sure closure captures class variable, not argument variable
         canvas.setOnMouseClicked(ev -> {
@@ -80,24 +75,28 @@ public class GameBoard {
             int col = getCol(ev.getX());
 
             if (row == -1 || col == -1
-                    || minefield.getResult() != GameResult.IN_PROGRESS) {
+                    || minefield.getResultProperty().get() != GameResult.IN_PROGRESS
+                    || gameTimer.isPaused()) {
                 return;
             }
 
             Cell selectedCell = minefield.getCell(row, col);
             switch (ev.getButton()) {
                 case PRIMARY:
-                    firstMove.set(false);
+                    inProgress.set(true);
+
                     if (selectedCell.getCellStatus() != CellStatus.REVEALED) {
                         minefield.chooseCell(row, col);
 
                         if (!gameTimer.isRunning()) {
-                            System.out.println("Timer started");
-                            gameTimer.isRunningProperty().set(true);
+                            gameTimer.start();
                         }
 
-                        switch (minefield.getResult()) {
-                            case GAME_WON, GAME_LOST -> gameTimer.isRunningProperty().set(false);
+                        switch (minefield.getResultProperty().get()) {
+                            case GAME_WON, GAME_LOST -> {
+                                inProgress.set(false);
+                                gameTimer.stop();
+                            }
                         }
                         draw();
                     }
@@ -144,17 +143,17 @@ public class GameBoard {
     }
 
     public void startNewGame(int rows, int cols, int percent) {
-        minefield = new Minefield(rows, cols, percent);
-        firstMove.set(true);
+        minefield.startNewGame(rows, cols, percent);
+        inProgress.set(false);
         flagsPlaced.set(0);
-        bombCount.set(minefield.getBombCount());
         tileLength.set(tileLength());
+        gameTimer.isPausedProperty().set(false);
         gameTimer.isRunningProperty().set(false);
         draw();
     }
 
     public void draw() {
-        if (gameTimer.isRunning() || minefield.isFirstMove()) {
+        if (!gameTimer.isPaused()) {
             g.setFill(gapColor);
             g.fillRect(0, 0, width(), height());
 
@@ -202,11 +201,15 @@ public class GameBoard {
     }
 
     public IntegerProperty bombCountProperty() {
-        return bombCount;
+        return minefield.getBombCountProperty();
+    }
+
+    public BooleanProperty inProgressProperty() {
+        return inProgress;
     }
 
     public BooleanProperty isFirstMoveProperty() {
-        return firstMove;
+        return minefield.isFirstMoveProperty();
     }
 
     public DoubleProperty widthProperty() {

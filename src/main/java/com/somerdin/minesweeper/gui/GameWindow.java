@@ -1,5 +1,6 @@
 package com.somerdin.minesweeper.gui;
 
+import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -92,19 +93,9 @@ public class GameWindow {
         textContainer.setAlignment(Pos.CENTER);
 
         // container for buttons
-        Button pauseButton = new Button("Pause");
-
-        pauseButton.disableProperty().bind(board.isFirstMoveProperty());
-
-        pauseButton.setOnAction(ev -> {
-            if (gameTimer.isRunning()) {
-                gameTimer.stop();
-            } else {
-                gameTimer.start();
-            }
-        });
-
-        VBox buttonsContainer = new VBox(pauseButton);
+        Button pauseButton = pauseButton();
+        Button restartButton = restartButton();
+        VBox buttonsContainer = new VBox(pauseButton, restartButton);
 
         VBox vBox = new VBox();
         vBox.getChildren().addAll(textContainer, buttonsContainer);
@@ -136,6 +127,36 @@ public class GameWindow {
         text.textProperty().bindBidirectional(
                 gameTimer.getElapsedTimeProperty(), converter);
         return text;
+    }
+
+    private Button pauseButton() {
+        Button pauseButton = new Button("Pause");
+
+        pauseButton.disableProperty().bind(board.inProgressProperty().not());
+
+        pauseButton.textProperty().bind(Bindings.createStringBinding(() -> {
+            return gameTimer.isRunning() ? "Pause" : "Resume";
+        }, gameTimer.isRunningProperty()));
+
+        pauseButton.setOnAction(ev -> {
+            if (gameTimer.isPaused()) {
+                gameTimer.resume();
+            } else {
+                gameTimer.pause();
+            }
+        });
+        pauseButton.setFocusTraversable(false);
+        return pauseButton;
+    }
+
+    private Button restartButton() {
+        Button restartButton = new Button("Restart");
+        restartButton.visibleProperty().bind(board.isFirstMoveProperty().not());
+        restartButton.setOnAction(ev -> {
+            startGame();
+        });
+        restartButton.setFocusTraversable(false);
+        return restartButton;
     }
 
     private MenuBar menuBar() {

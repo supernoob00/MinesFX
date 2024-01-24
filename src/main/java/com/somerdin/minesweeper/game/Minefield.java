@@ -1,5 +1,7 @@
 package com.somerdin.minesweeper.game;
 
+import javafx.beans.property.*;
+
 import java.io.*;
 import java.util.ArrayDeque;
 import java.util.Queue;
@@ -8,14 +10,14 @@ public class Minefield {
     private static final int BOMB_CELL = -1;
 
     private boolean isStartZero = true;
-    private int bombCount;
-    private int revealCount;
+
+    private final IntegerProperty bombCount = new SimpleIntegerProperty();
+    private final IntegerProperty revealCount = new SimpleIntegerProperty();
+    private final BooleanProperty firstMove = new SimpleBooleanProperty(true);
+    private final ObjectProperty<GameResult> result = new SimpleObjectProperty<>();
 
     private Cell[][] grid;
     private int[][] bombValues; // number of neighbors that contain bomb (0-8, or BOMB_CELL if tile itself is a bomb)
-
-    private boolean firstMove;
-    private GameResult result;
 
     private int percentBomb;
 
@@ -29,53 +31,13 @@ public class Minefield {
 
     /* create a randomly-generated minefield of given size and bomb density */
     public Minefield(int rows, int cols, int percent) {
-        if (rows < 4 || cols < 4 || rows > 100 || cols > 100) {
-            throw new IllegalArgumentException("Row and column count must be between 4 and 100");
-        }
-        if (percent < 0 || percent > 99) {
-            throw new IllegalArgumentException("Invalid bomb ratio");
-        }
-
-        firstMove = true;
-        result = GameResult.IN_PROGRESS;
-        percentBomb = percent;
-
-        int tiles = rows * cols;
-        // TODO: use JDK21 Math.clamp() method instead
-        int bombsToPlace = Math.min(
-                rows * cols - 9,
-                Math.max(1, (int) (tiles * ((double) percent / 100))));
-
-        // set class fields
-        grid = new Cell[rows][cols];
-        bombValues = new int[rows][cols];
-
-        // mark bomb neighbor values matrix with bombs, then shuffle
-        for (int i = 0; i < bombsToPlace; i++) {
-            int row = i / cols;
-            int col = i % cols;
-
-            bombValues[row][col] = BOMB_CELL;
-        }
-        shuffle2DArray(bombValues);
-
-        // fill grid with either empty or bomb cells, using neighbor values
-        // matrix as the guide
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                grid[i][j] = new Cell(false, CellStatus.HIDDEN);
-
-                if (bombValues[i][j] == BOMB_CELL) {
-                    addBomb(i, j);
-                }
-            }
-        }
+        startNewGame(rows, cols, percent);
     }
 
     /* create a minefield from text representation */
     public Minefield(File file) {
-        firstMove = true;
-        result = GameResult.IN_PROGRESS;
+        firstMove.set(true);
+        result.set(GameResult.IN_PROGRESS);
 
         try (BufferedReader in = new BufferedReader(new FileReader(file));
              BufferedReader in2 = new BufferedReader(new FileReader(file));) {
@@ -124,19 +86,65 @@ public class Minefield {
         }
     }
 
+    public void startNewGame(int rows, int cols, int percent) {
+        if (rows < 4 || cols < 4 || rows > 100 || cols > 100) {
+            throw new IllegalArgumentException("Row and column count must be between 4 and 100");
+        }
+        if (percent < 0 || percent > 99) {
+            throw new IllegalArgumentException("Invalid bomb ratio");
+        }
+
+        bombCount.set(0);
+        revealCount.set(0);
+        firstMove.set(true);
+        result.set(GameResult.IN_PROGRESS);
+        percentBomb = percent;
+
+        int tiles = rows * cols;
+        // TODO: use JDK21 Math.clamp() method instead
+        int bombsToPlace = Math.min(
+                rows * cols - 9,
+                Math.max(1, (int) (tiles * ((double) percent / 100))));
+
+        // set class fields
+        grid = new Cell[rows][cols];
+        bombValues = new int[rows][cols];
+
+        // mark bomb neighbor values matrix with bombs, then shuffle
+        for (int i = 0; i < bombsToPlace; i++) {
+            int row = i / cols;
+            int col = i % cols;
+
+            bombValues[row][col] = BOMB_CELL;
+        }
+        shuffle2DArray(bombValues);
+
+        // fill grid with either empty or bomb cells, using neighbor values
+        // matrix as the guide
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                grid[i][j] = new Cell(false, CellStatus.HIDDEN);
+
+                if (bombValues[i][j] == BOMB_CELL) {
+                    addBomb(i, j);
+                }
+            }
+        }
+    }
+
     public Cell getCell(int row, int col) {
         return grid[row][col];
     }
 
-    public GameResult getResult() {
+    public ObjectProperty<GameResult> getResultProperty() {
         return result;
     }
 
-    public int getBombCount() {
+    public IntegerProperty getBombCountProperty() {
         return bombCount;
     }
 
-    public boolean isFirstMove() {
+    public BooleanProperty isFirstMoveProperty() {
         return firstMove;
     }
 
@@ -200,7 +208,7 @@ public class Minefield {
                 }
             }
         }
-        bombCount++;
+        bombCount.set(bombCount.get() + 1);
     }
 
     public void removeBomb(int row, int col) {
@@ -221,7 +229,7 @@ public class Minefield {
         }
 
         grid[row][col].setBomb(false);
-        bombCount--;
+        bombCount.set(bombCount.get() - 1);
     }
 
     public void chooseCell(int row, int col) {
@@ -232,24 +240,24 @@ public class Minefield {
         Cell selected = grid[row][col];
 
         // TODO: find cleaner way to express logic
-        if (firstMove) {
+        if (firstMove.get()) {
             if (isStartZero) {
                 moveStartingNeighbors(row, col);
             } else if (selected.isBomb()) {
                 moveBombToFirstEmpty(row, col);
             }
-            firstMove = false;
+            firstMove.set(false);
         } else if (selected.isBomb()) {
             // TODO: logic for blow up
             revealAll();
             selected.setBombStatus(BombStatus.DETONATED);
-            result = GameResult.GAME_LOST;
+            result.set(GameResult.GAME_LOST);
             return;
         }
 
         revealArea(row, col);
-        if (revealCount == rowCount() * colCount() - bombCount) {
-            result = GameResult.GAME_WON;
+        if (revealCount.get() == rowCount() * colCount() - bombCount.get()) {
+            result.set(GameResult.GAME_WON);
         }
     }
 
@@ -273,7 +281,7 @@ public class Minefield {
 
 
         cell.setCellStatus(CellStatus.REVEALED);
-        revealCount++;
+        revealCount.set(revealCount.get() + 1);
     }
 
     /* moves bomb at specified cell to first empty cell from top left */
@@ -299,7 +307,7 @@ public class Minefield {
 
         int count = rowCount() * colCount();
 
-        while (count >= 0) {
+        for (int k = 0; k < count; k++) {
             if (!grid[i][j].isBomb()
                     && !areNeighbors(row, col, i, j)) {
                 addBomb(i, j);
@@ -307,9 +315,8 @@ public class Minefield {
             }
             j = (j + 1) % colCount();
             if (j == 0) {
-                i = (i + 1) % colCount();
+                i = (i + 1) % rowCount();
             }
-            count--;
         }
     }
 

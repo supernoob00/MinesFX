@@ -73,7 +73,7 @@ public class SVGImage {
         return observable.doubleValue() * scaleFactor;
     }
 
-    /* sets the
+    /* sets the scale factor */
     public void setScaleFactor(double newFactor) {
         scaleFactor = newFactor;
     }

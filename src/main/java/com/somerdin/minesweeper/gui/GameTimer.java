@@ -7,11 +7,13 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleLongProperty;
 
 public class GameTimer extends AnimationTimer {
+    private BooleanProperty isPaused;
     private BooleanProperty isRunning;
     private long lastTime;
     private LongProperty elapsedTime;
 
     public GameTimer() {
+        isPaused = new SimpleBooleanProperty();
         isRunning = new SimpleBooleanProperty();
         isRunning.addListener((observable, oldVal, newVal) -> {
 //          assert (newVal != isRunning.get());
@@ -43,6 +45,26 @@ public class GameTimer extends AnimationTimer {
     public void stop() {
         isRunning.set(false);
         super.stop();
+    }
+
+    public BooleanProperty isPausedProperty() {
+        return isPaused;
+    }
+
+    public boolean isPaused() {
+        return isPaused.get();
+    }
+
+    public void pause() {
+        assert (isRunning.get() && !isPaused.get());
+        isPaused.set(true);
+        stop();
+    }
+
+    public void resume() {
+        assert (!isRunning.get() && isPaused.get());
+        isPaused.set(false);
+        start();
     }
 
     /* reset timer to zero */
