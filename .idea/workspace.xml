@@ -6,11 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="33651b82-1023-42cd-9981-d500d28a25d3" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/MinesweeperApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/MinesweeperApplication.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/game/Cell.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/game/Cell.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/game/Minefield.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/game/Minefield.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/gui/GameBoard.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/gui/GameBoard.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/gui/GameTimer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/gui/GameTimer.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/gui/GameWindow.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/gui/GameWindow.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -38,30 +35,30 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Downloaded.Files.Path.Enabled": "false",
-    "Repository.Attach.Annotations": "false",
-    "Repository.Attach.JavaDocs": "false",
-    "Repository.Attach.Sources": "false",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "kotlin.migration.detection.enabled": "false",
-    "last_opened_file_path": "/home/sam/repos/minesweeper/src/main/resources/classic",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "project.structure.last.edited": "Modules",
-    "project.structure.proportion": "0.15",
-    "project.structure.side.proportion": "0.7484276",
-    "settings.editor.selected.configurable": "com.intellij.jarRepository.settings.RemoteRepositoriesConfigurable",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Downloaded.Files.Path.Enabled&quot;: &quot;false&quot;,
+    &quot;Repository.Attach.Annotations&quot;: &quot;false&quot;,
+    &quot;Repository.Attach.JavaDocs&quot;: &quot;false&quot;,
+    &quot;Repository.Attach.Sources&quot;: &quot;false&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;kotlin.migration.detection.enabled&quot;: &quot;false&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/sam/repos/minesweeper/src/main/resources/classic&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.7484276&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.intellij.jarRepository.settings.RemoteRepositoriesConfigurable&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/src/main/resources/classic" />
@@ -136,6 +133,8 @@
       <workItem from="1705199233945" duration="32521000" />
       <workItem from="1705282582461" duration="9191000" />
       <workItem from="1705349221688" duration="101534000" />
+      <workItem from="1706140665324" duration="17000" />
+      <workItem from="1706144320167" duration="1809000" />
     </task>
     <servers />
   </component>

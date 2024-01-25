@@ -32,8 +32,8 @@ public class Minefield {
     }
 
     /* create a randomly-generated minefield of given size and bomb density */
-    public Minefield(int rows, int cols, int percent) {
-        startNewGame(rows, cols, percent);
+    public Minefield(Difficulty difficulty) {
+        startNewGame(difficulty);
     }
 
     /* create a minefield from text representation */
@@ -88,34 +88,28 @@ public class Minefield {
         }
     }
 
-    public void startNewGame(int rows, int cols, int percent) {
-        if (rows < 4 || cols < 4 || rows > 100 || cols > 100) {
-            throw new IllegalArgumentException("Row and column count must be between 4 and 100");
-        }
-        if (percent < 0 || percent > 99) {
-            throw new IllegalArgumentException("Invalid bomb ratio");
-        }
-
+    public void startNewGame(Difficulty difficulty) {
         bombCount.set(0);
         revealCount.set(0);
         firstMove.set(true);
+        flaggedCountProperty().set(0);
         result.set(GameResult.IN_PROGRESS);
-        percentBomb = percent;
+        percentBomb = difficulty.bombPercent();
 
-        int tiles = rows * cols;
+        int tiles = difficulty.rows() * difficulty.cols();
         // TODO: use JDK21 Math.clamp() method instead
         int bombsToPlace = Math.min(
-                rows * cols - 9,
-                Math.max(1, (int) (tiles * ((double) percent / 100))));
+                difficulty.rows() * difficulty.cols() - 9,
+                Math.max(1, (int) (tiles * ((double) percentBomb / 100))));
 
         // set class fields
-        grid = new Cell[rows][cols];
-        neighborCounts = new int[rows][cols];
+        grid = new Cell[difficulty.rows()][difficulty.cols()];
+        neighborCounts = new int[difficulty.rows()][difficulty.cols()];
 
         // mark bomb neighbor values matrix with bombs, then shuffle
         for (int i = 0; i < bombsToPlace; i++) {
-            int row = i / cols;
-            int col = i % cols;
+            int row = i / difficulty.cols();
+            int col = i % difficulty.cols();
 
             neighborCounts[row][col] = BOMB_CELL;
         }
@@ -123,8 +117,8 @@ public class Minefield {
 
         // fill grid with either empty or bomb cells, using neighbor values
         // matrix as the guide
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
+        for (int i = 0; i < difficulty.rows(); i++) {
+            for (int j = 0; j < difficulty.cols(); j++) {
                 grid[i][j] = new Cell(CellStatus.HIDDEN, false);
 
                 if (neighborCounts[i][j] == BOMB_CELL) {

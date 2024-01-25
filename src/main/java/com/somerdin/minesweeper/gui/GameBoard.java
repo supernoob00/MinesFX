@@ -129,13 +129,12 @@ public class GameBoard {
         return canvas;
     }
 
-    public void startNewGame(int rows, int cols, int percent) {
-        minefield.startNewGame(rows, cols, percent);
+    public void startNewGame(Difficulty difficulty) {
+        minefield.startNewGame(difficulty);
+
         inProgress.set(false);
-        minefield.flaggedCountProperty().set(0);
         tileLength.set(tileLength());
-        gameTimer.pausedProperty().set(false);
-        gameTimer.isRunningProperty().set(false);
+
         draw();
     }
 

@@ -1,6 +1,7 @@
 package com.somerdin.minesweeper.gui;
 
 import com.somerdin.minesweeper.MinesweeperApplication;
+import com.somerdin.minesweeper.game.Difficulty;
 import javafx.application.Application;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
@@ -63,15 +64,20 @@ public class GameWindow {
     }
 
     /* start new game with specified settings */
-    public void startGame(int rows, int cols, int percent) {
+    public void startGame(Difficulty difficulty) {
         gameTimer.stop();
         gameTimer.reset();
-        board.startNewGame(rows, cols, percent);
+        gameTimer.pausedProperty().set(false);
+        gameTimer.isRunningProperty().set(false);
+        board.startNewGame(difficulty);
     }
 
     /* start new game with current settings */
     public void startGame() {
-        startGame(board.getRowCount(), board.getColCount(), board.getPercentBomb());
+        startGame(new Difficulty(
+                board.getRowCount(),
+                board.getColCount(),
+                board.getPercentBomb()));
     }
 
     public BorderPane getBorderPane() {
@@ -282,9 +288,12 @@ public class GameWindow {
 
         startButton.setOnAction(ev -> {
             customDifficultyOptions.close();
-            startGame(rowSpinner.getValue(),
+
+            Difficulty difficulty = new Difficulty(
+                    rowSpinner.getValue(),
                     colSpinner.getValue(),
                     bombSpinner.getValue());
+            startGame(difficulty);
         });
 
         return customDifficultyOptions;
