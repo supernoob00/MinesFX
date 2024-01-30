@@ -1,8 +1,6 @@
 package com.somerdin.minesweeper.game;
 
 public class Cell {
-    private boolean isExploded;
-
     private CellStatus cellStatus;
     private BombStatus bombStatus;
 

@@ -2,9 +2,9 @@ package com.somerdin.minesweeper.gui;
 
 import com.somerdin.minesweeper.game.*;
 import javafx.beans.property.*;
-import javafx.scene.Cursor;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
+import javafx.scene.input.MouseButton;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 
@@ -23,24 +23,24 @@ public class GameBoard {
     private final SVGImage imgExploded;
     private final SVGImage imgFlag;
     private final SVGImage imgMaybe;
-
     private double scaleFactor = 0.75;
+
+    private final ResizableCanvas canvas;
+    private final GraphicsContext g;
+    private final Minefield minefield;
+    private final GameTimer gameTimer;
 
     public BoardTheme currentTheme = BoardTheme.DEFAULT;
     private ColorTheme colorTheme = ColorTheme.DEFAULT;
 
-    private final ResizableCanvas canvas;
-    private final GraphicsContext g;
-
-    private double gap;
-
-    // TODO: add padding logic to draw methods
-    private double padding;
     private DoubleProperty tileLength = new SimpleDoubleProperty();
     private BooleanProperty inProgress = new SimpleBooleanProperty();
+    private double gap;
+    private double xShift;
+    private double yShift;
 
-    private GameTimer gameTimer;
-    private Minefield minefield;
+    private Cell hoverCell;
+    private Cell selectedCell;
 
     public GameBoard(Minefield field, GameTimer timer) {
         gameTimer = timer;
@@ -48,66 +48,23 @@ public class GameBoard {
 
         gap = 4;
         canvas = new ResizableCanvas();
+        g = canvas.getGraphicsContext2D();
+
+        addCanvasMouseListeners();
 
         // TODO: create a DelayedChangeListener class to avoid repeated computation
         canvas.widthProperty().addListener((observable, oldVal, newVal) -> {
             tileLength.set(tileLength());
+            setXYShift();
+            draw();
         });
         canvas.heightProperty().addListener((observable, oldVal, newVal) -> {
             tileLength.set(tileLength());
-        });
-
-        canvas.setCursor(Cursor.HAND);
-        timer.pausedProperty().addListener((observable, oldValue, newValue) -> {
-            canvas.setCursor(newValue ? Cursor.DEFAULT : Cursor.HAND);
-        });
-
-        // make sure closure captures class variable, not argument variable
-        canvas.setOnMouseClicked(ev -> {
-            int row = getRow(ev.getY());
-            int col = getCol(ev.getX());
-
-            if (row == -1 || col == -1
-                    || minefield.gameResultProperty().get() != GameResult.IN_PROGRESS
-                    || gameTimer.isPaused()) {
-                return;
-            }
-
-            Cell selectedCell = minefield.getCell(row, col);
-            switch (ev.getButton()) {
-                case PRIMARY:
-                    inProgress.set(true);
-
-                    if (selectedCell.getCellStatus() != CellStatus.REVEALED) {
-                        minefield.chooseCell(row, col);
-
-                        if (!gameTimer.isRunning()) {
-                            gameTimer.start();
-                        }
-
-                        switch (minefield.getGameResult()) {
-                            case GAME_WON, GAME_LOST -> {
-                                inProgress.set(false);
-                                gameTimer.stop();
-                            }
-                        }
-                        draw();
-                    }
-                    break;
-                case SECONDARY:
-                    if (selectedCell.getCellStatus() != CellStatus.REVEALED) {
-                        CellStatus oldStatus = selectedCell.getCellStatus();
-                        minefield.toggleFlag(row, col);
-                        draw();
-                    }
-                    break;
-                default:
-                    break;
-            }
+            setXYShift();
+            draw();
         });
 
         canvas.resize(500, 500);
-        g = canvas.getGraphicsContext2D();
 
         img1 = new SVGImage(currentTheme.getURL(Tile.ONE), tileLength, scaleFactor);
         img2 = new SVGImage(currentTheme.getURL(Tile.TWO), tileLength, scaleFactor);
@@ -134,6 +91,7 @@ public class GameBoard {
 
         inProgress.set(false);
         tileLength.set(tileLength());
+        setXYShift();
 
         draw();
     }
@@ -141,11 +99,11 @@ public class GameBoard {
     public void draw() {
         if (!gameTimer.isPaused()) {
             g.setFill(colorTheme.getGapColor());
-            g.fillRect(0, 0, width(), height());
+            g.clearRect(0, 0, width(), height());
 
             for (int i = 0; i < rows(); i++) {
                 for (int j = 0; j < cols(); j++) {
-                    drawTile(i, j);
+                    drawTile(xShift, yShift, i, j);
                 }
             }
         } else {
@@ -206,9 +164,20 @@ public class GameBoard {
         return canvas.heightProperty();
     }
 
-    private void drawTile(int row, int col) {
+    public Difficulty getDifficulty() {
+        return minefield.getDifficulty();
+    }
+
+    private void drawTile(double xShift, double yShift, int row, int col) {
         Cell cell = minefield.getCell(row, col);
-        if (cell.getCellStatus() == CellStatus.REVEALED) {
+
+        assert (selectedCell != hoverCell);
+
+        if (cell == selectedCell) {
+            g.setFill(colorTheme.getSelectColor());
+        } else if (cell == hoverCell) {
+            g.setFill(colorTheme.getHoverColor());
+        } else if (cell.getCellStatus() == CellStatus.REVEALED) {
             if (cell.getBombStatus() == BombStatus.DETONATED) {
                 g.setFill(colorTheme.getBombColor());
             } else {
@@ -218,8 +187,8 @@ public class GameBoard {
             g.setFill(colorTheme.getTileColor());
         }
 
-        double x = cellCornerX(col);
-        double y = cellCornerY(row);
+        double x = cellCornerX(col) + xShift;
+        double y = cellCornerY(row) + yShift;
 
         g.fillRoundRect(x, y, tileLength.get(), tileLength.get(), 10, 10);
 
@@ -308,18 +277,18 @@ public class GameBoard {
         return (height() - totalGap) / rows();
     }
 
-    private int getRow(double mouseX) {
-        double val = tileLength.get() + gap;
-        int row = (int) ((mouseX - padding) / val);
+    private int getRow(double mouseY) {
+        double tileGapSize = tileLength.get() + gap;
+        int row = (int) ((mouseY - yShift) / tileGapSize);
         if (row < 0 || row > rows() - 1) {
             return -1;
         }
         return row;
     }
 
-    private int getCol(double mouseY) {
-        double val = tileLength.get() + gap;
-        int col = (int) ((mouseY - padding) / val);
+    private int getCol(double mouseX) {
+        double tileGapSize = tileLength.get() + gap;
+        int col = (int) ((mouseX - xShift) / tileGapSize);
         if (col < 0 || col > cols() - 1) {
             return -1;
         }
@@ -327,10 +296,149 @@ public class GameBoard {
     }
 
     private double cellCornerX(int col) {
-        return padding + gap + col * (tileLength.get() + gap);
+        return gap + col * (tileLength.get() + gap);
     }
 
     private double cellCornerY(int row) {
-        return padding + gap + row * (tileLength.get() + gap);
+        return gap + row * (tileLength.get() + gap);
+    }
+
+    private void setXYShift() {
+        double gridWidth = (tileLength.get() + gap) * cols() + gap;
+        double gridHeight = (tileLength.get() + gap) * rows() + gap;
+
+        xShift = Math.max(0, (canvas.getWidth() - gridWidth) / 2);
+        yShift = Math.max(0, (canvas.getHeight() - gridHeight) / 2);
+    }
+
+    private boolean isGameInteractive() {
+        return minefield.getGameResult() == GameResult.IN_PROGRESS
+                && !gameTimer.isPaused();
+    }
+
+    private boolean isCellHoverable(int row, int col) {
+        return minefield.getCell(row, col).getCellStatus() != CellStatus.REVEALED;
+    }
+
+    private boolean isCellSelectable(int row, int col) {
+        return minefield.getCell(row, col).getCellStatus() == CellStatus.HIDDEN;
+    }
+
+    private boolean isCellFlaggable(int row, int col) {
+        return minefield.getCell(row, col).getCellStatus() != CellStatus.REVEALED;
+    }
+
+    private void addCanvasMouseListeners() {
+        canvas.setOnMouseMoved(ev -> {
+            if (!isGameInteractive()) {
+                return;
+            }
+
+            int row = getRow(ev.getY());
+            int col = getCol(ev.getX());
+
+            if (row == -1 || col == -1 || !isCellHoverable(row, col)) {
+                hoverCell = null;
+            } else {
+                hoverCell = minefield.getCell(row, col);
+            }
+            draw();
+        });
+
+        canvas.setOnMouseDragged(ev -> {
+            if (!isGameInteractive() || ev.getButton() != MouseButton.PRIMARY) {
+                return;
+            }
+
+            hoverCell = null;
+
+            int row = getRow(ev.getY());
+            int col = getCol(ev.getX());
+
+            if (row == -1 || col == -1 || !isCellSelectable(row, col)) {
+                selectedCell = null;
+            } else {
+                selectedCell = minefield.getCell(row, col);
+            }
+            draw();
+        });
+
+        canvas.setOnMousePressed(ev -> {
+            System.out.println("click");
+            if (!isGameInteractive() || ev.getButton() != MouseButton.PRIMARY) {
+                System.out.println("FAIL");
+                return;
+            }
+
+            int row = getRow(ev.getY());
+            int col = getCol(ev.getX());
+
+            if (row == -1 || col == -1 || !isCellSelectable(row, col)) {
+                System.out.println("FAIL");
+                return;
+            }
+
+            selectedCell = minefield.getCell(row, col);
+            draw();
+        });
+        canvas.setOnMouseReleased(ev -> {
+            int row = getRow(ev.getY());
+            int col = getCol(ev.getX());
+
+            if (row == -1 || col == -1
+                    || minefield.gameResultProperty().get() != GameResult.IN_PROGRESS
+                    || gameTimer.isPaused()) {
+                return;
+            }
+
+            selectedCell = null;
+
+            Cell cell = minefield.getCell(row, col);
+            switch (ev.getButton()) {
+                case PRIMARY:
+                    if (!isCellSelectable(row, col)) {
+                        break;
+                    }
+                    inProgress.set(true);
+                    hoverCell = null;
+
+                    if (cell.getCellStatus() != CellStatus.REVEALED) {
+                        minefield.chooseCell(row, col);
+
+                        if (!gameTimer.isRunning()) {
+                            gameTimer.start();
+                        }
+
+                        switch (minefield.getGameResult()) {
+                            case GAME_WON, GAME_LOST -> {
+                                inProgress.set(false);
+                                gameTimer.stop();
+                            }
+                        }
+                        draw();
+                    }
+                    break;
+                case SECONDARY:
+                    if (cell.getCellStatus() != CellStatus.REVEALED) {
+                        CellStatus oldStatus = cell.getCellStatus();
+                        minefield.toggleFlag(row, col);
+                        draw();
+                    }
+                    break;
+                default:
+                    break;
+            }
+            draw();
+        });
+        canvas.setOnMouseExited(ev -> {
+            hoverCell = null;
+            selectedCell = null;
+            draw();
+        });
+        canvas.setOnMouseDragExited(ev -> {
+            hoverCell = null;
+            selectedCell = null;
+            draw();
+        });
     }
 }

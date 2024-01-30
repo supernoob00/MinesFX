@@ -6,7 +6,11 @@
   <component name="ChangeListManager">
     <list default="true" id="33651b82-1023-42cd-9981-d500d28a25d3" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/MinesweeperApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/MinesweeperApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/game/Cell.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/game/Cell.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/game/Minefield.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/game/Minefield.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/gui/BoardImages.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/gui/ColorTheme.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/gui/ColorTheme.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/gui/GameBoard.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/gui/GameBoard.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/gui/GameWindow.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/gui/GameWindow.java" afterDir="false" />
     </list>
@@ -134,7 +138,10 @@
       <workItem from="1705282582461" duration="9191000" />
       <workItem from="1705349221688" duration="101534000" />
       <workItem from="1706140665324" duration="17000" />
-      <workItem from="1706144320167" duration="1809000" />
+      <workItem from="1706144320167" duration="28761000" />
+      <workItem from="1706406478649" duration="646000" />
+      <workItem from="1706545361778" duration="899000" />
+      <workItem from="1706582149437" duration="5146000" />
     </task>
     <servers />
   </component>

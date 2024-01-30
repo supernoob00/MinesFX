@@ -3,21 +3,43 @@ package com.somerdin.minesweeper.gui;
 import javafx.scene.paint.Color;
 
 public enum ColorTheme {
-    DEFAULT(Color.RED, Color.LIGHTGRAY, Color.WHITESMOKE, Color.GREY, Color.WHEAT),
-    SPECIAL(Color.TRANSPARENT, Color.TRANSPARENT, Color.TRANSPARENT, Color.GREY, Color.WHEAT);
+    DEFAULT(Color.RED,
+            Color.LIGHTGRAY,
+            Color.WHITESMOKE,
+            Color.TRANSPARENT,
+            Color.WHEAT,
+            Color.GOLD,
+            Color.BLUE),
+    SPECIAL(Color.TRANSPARENT,
+            Color.TRANSPARENT,
+            Color.TRANSPARENT,
+            Color.GREY,
+            Color.WHEAT,
+            Color.GOLD,
+            Color.BLUE);
 
     private final Color bombColor;
     private final Color tileColor;
     private final Color revealedTileColor;
     private final Color gapColor;
     private final Color pausedColor;
+    private final Color hoverColor;
+    private final Color selectColor;
 
-    ColorTheme(Color bombColor, Color tileColor, Color revealedTileColor, Color gapColor, Color pausedColor) {
+    ColorTheme(Color bombColor,
+               Color tileColor,
+               Color revealedTileColor,
+               Color gapColor,
+               Color pausedColor,
+               Color hoverColor,
+               Color selectColor) {
         this.bombColor = bombColor;
         this.tileColor = tileColor;
         this.revealedTileColor = revealedTileColor;
         this.gapColor = gapColor;
         this.pausedColor = pausedColor;
+        this.hoverColor = hoverColor;
+        this.selectColor = selectColor;
     }
 
     public Color getBombColor() {
@@ -38,5 +60,13 @@ public enum ColorTheme {
 
     public Color getPausedColor() {
         return pausedColor;
+    }
+
+    public Color getHoverColor() {
+        return hoverColor;
+    }
+
+    public Color getSelectColor() {
+        return selectColor;
     }
 }

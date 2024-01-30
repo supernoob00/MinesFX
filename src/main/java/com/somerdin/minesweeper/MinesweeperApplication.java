@@ -1,17 +1,12 @@
 package com.somerdin.minesweeper;
 
 import com.somerdin.minesweeper.game.Minefield;
-import com.somerdin.minesweeper.gui.BoardImages;
 import com.somerdin.minesweeper.gui.GameBoard;
 import com.somerdin.minesweeper.gui.GameTimer;
 import com.somerdin.minesweeper.gui.GameWindow;
 import javafx.application.Application;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.control.PopupControl;
-import javafx.stage.Popup;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 
 import java.io.File;
 import java.io.IOException;

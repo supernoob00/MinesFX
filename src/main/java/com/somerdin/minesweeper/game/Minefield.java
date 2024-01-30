@@ -94,6 +94,7 @@ public class Minefield {
         firstMove.set(true);
         flaggedCountProperty().set(0);
         result.set(GameResult.IN_PROGRESS);
+
         percentBomb = difficulty.bombPercent();
 
         int tiles = difficulty.rows() * difficulty.cols();
@@ -189,6 +190,10 @@ public class Minefield {
         return percentBomb;
     }
 
+    public Difficulty getDifficulty() {
+        return new Difficulty(rowCount(), colCount(), percentBomb);
+    }
+
     @Override
     public String toString() {
         StringBuilder board = new StringBuilder();
@@ -257,7 +262,6 @@ public class Minefield {
             }
             firstMove.set(false);
         } else if (selected.isBomb()) {
-            // TODO: logic for blow up
             revealAll();
             selected.setBombStatus(BombStatus.DETONATED);
             result.set(GameResult.GAME_LOST);

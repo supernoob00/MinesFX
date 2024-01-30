@@ -3,6 +3,8 @@ package com.somerdin.minesweeper.gui;
 import com.somerdin.minesweeper.MinesweeperApplication;
 import com.somerdin.minesweeper.game.Difficulty;
 import javafx.application.Application;
+import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -48,17 +50,11 @@ public class GameWindow {
         borderPane.setTop(menuBar());
 
         // everything that's not the top menu bar
-        HBox content = new HBox();
 
-        Pane centerPane = centerPane();
-        VBox currentGameInfo = currentGameInfo();
-
-        Region leftPadding = new Region();
-        leftPadding.prefWidthProperty().bind(currentGameInfo.widthProperty());
-
-        content.getChildren().addAll(leftPadding, centerPane, currentGameInfo);
-        HBox.setHgrow(centerPane, Priority.ALWAYS);
-        HBox.setHgrow(currentGameInfo, Priority.ALWAYS);
+        BorderPane content = new BorderPane();
+        content.setTop(toolBar());
+        content.setCenter(centerPane());
+        content.setBottom(currentGameInfo());
 
         borderPane.setCenter(content);
     }
@@ -72,12 +68,22 @@ public class GameWindow {
         board.startNewGame(difficulty);
     }
 
-    /* start new game with current settings */
-    public void startGame() {
-        startGame(new Difficulty(
-                board.getRowCount(),
-                board.getColCount(),
-                board.getPercentBomb()));
+    public void startGameAfterConfirmation(Difficulty difficulty) {
+        if (board.inProgressProperty().get()) {
+            Alert alert = new Alert(
+                    Alert.AlertType.NONE,
+                    "Are you sure you want to start a new game?",
+                    ButtonType.NO,
+                    ButtonType.OK);
+            alert.setTitle("Confirmation");
+            alert.showAndWait().ifPresent((response) -> {
+                if (response == ButtonType.OK) {
+                    startGame(difficulty);
+                }
+            });
+        } else {
+            startGame(difficulty);
+        }
     }
 
     public BorderPane getBorderPane() {
@@ -93,25 +99,25 @@ public class GameWindow {
         darkMode.set(!darkMode.get());
     }
 
+    private ToolBar toolBar() {
+        ToolBar toolBar = new ToolBar();
+        toolBar.getItems().addAll(restartButton(), pauseButton());
+        return toolBar;
+    }
+
     /* Info about current game, shown directly next to grid */
-    private VBox currentGameInfo() {
+    private HBox currentGameInfo() {
         // game timer text
         Text timerText = gameTimer();
 
         // container for game time and flag/bomb count text
-        VBox textContainer = new VBox(timerText, flagInfo());
+        HBox textContainer = new HBox(timerText, flagInfo());
         textContainer.setAlignment(Pos.CENTER);
 
-        // container for buttons
-        Button pauseButton = pauseButton();
-        Button restartButton = restartButton();
-        VBox buttonsContainer = new VBox(pauseButton, restartButton);
-
-        VBox vBox = new VBox();
-        vBox.getChildren().addAll(textContainer, buttonsContainer);
-        vBox.setAlignment(Pos.CENTER_LEFT);
-        vBox.setPadding(new Insets(16, 16, 16, 16));
-        return vBox;
+        HBox hBox = new HBox();
+        hBox.getChildren().addAll(textContainer);
+        hBox.setAlignment(Pos.CENTER_LEFT);
+        return hBox;
     }
 
     private Text gameTimer() {
@@ -174,25 +180,8 @@ public class GameWindow {
     }
 
     private Button restartButton() {
-        Button restartButton = new Button("Restart");
-        restartButton.visibleProperty().bind(board.isFirstMoveProperty().not());
-        restartButton.setOnAction(ev -> {
-            if (board.inProgressProperty().get()) {
-                Alert alert = new Alert(
-                        Alert.AlertType.NONE,
-                        "Are you sure you want to start a new game?",
-                        ButtonType.NO,
-                        ButtonType.OK);
-                alert.setTitle("Confirmation");
-                alert.showAndWait().ifPresent((response) -> {
-                    if (response == ButtonType.OK) {
-                        startGame();
-                    }
-                });
-            } else {
-                startGame();
-            }
-        });
+        Button restartButton = new Button("New Game");
+        restartButton.setOnAction(ev -> startGameAfterConfirmation(board.getDifficulty()));
         restartButton.setFocusTraversable(false);
         return restartButton;
     }
@@ -218,15 +207,16 @@ public class GameWindow {
 
         // create radio menu items group
         RadioMenuItem easyMenuItem = new RadioMenuItem("Easy");
-        easyMenuItem.setSelected(true);
+        easyMenuItem.setOnAction(ev -> startGameAfterConfirmation(Difficulty.EASY));
         RadioMenuItem mediumMenuItem = new RadioMenuItem("Medium");
+        mediumMenuItem.setOnAction(ev -> startGameAfterConfirmation(Difficulty.MEDIUM));
         RadioMenuItem hardMenuItem = new RadioMenuItem("Hard");
+        hardMenuItem.setOnAction(ev -> startGameAfterConfirmation(Difficulty.HARD));
         RadioMenuItem customMenuItem = new RadioMenuItem("Custom...");
 
         ToggleGroup difficultyGroup = new ToggleGroup();
         difficultyGroup.getToggles().addAll(
                 easyMenuItem, mediumMenuItem, hardMenuItem, customMenuItem);
-
 
         Stage customDifficulty = customDifficultyOptions();
         customMenuItem.setOnAction(ev -> {
@@ -313,21 +303,11 @@ public class GameWindow {
     private Pane centerPane() {
         ResizableCanvas canvas = board.getCanvas();
 
-        Pane centerPane = new Pane(canvas);
-        centerPane.widthProperty().addListener(
-                (o, oldWidth, newWidth) -> {
-                    double newSize = Math.min(newWidth.doubleValue(), centerPane.getHeight());
-                    canvas.resize(newSize, newSize);
-                    board.draw();
-                });
-        centerPane.heightProperty().addListener(
-                (o, oldVal, newHeight) -> {
-                    double newSize = Math.min(newHeight.doubleValue(), centerPane.getWidth());
-                    canvas.resize(newSize, newSize);
-                    board.draw();
-                });
-
-        centerPane.resize(500, 500);
+        StackPane centerPane = new StackPane(canvas);
+        centerPane.setAlignment(Pos.CENTER);
+        parentStage.fullScreenProperty().addListener((observable, oldValue, newValue) -> {
+            board.draw();
+        });
         return centerPane;
     }
 }
