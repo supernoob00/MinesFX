@@ -1,6 +1,8 @@
 package com.somerdin.minesweeper.gui;
 
 import com.somerdin.minesweeper.game.*;
+import com.somerdin.minesweeper.style.BoardGraphic;
+import com.somerdin.minesweeper.style.ColorTheme;
 import javafx.beans.property.*;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
@@ -30,7 +32,7 @@ public class GameBoard {
     private final Minefield minefield;
     private final GameTimer gameTimer;
 
-    public BoardTheme currentTheme = BoardTheme.DEFAULT;
+    public BoardGraphic currentTheme = BoardGraphic.DEFAULT;
     private ColorTheme colorTheme = ColorTheme.DEFAULT;
 
     private DoubleProperty tileLength = new SimpleDoubleProperty();
@@ -111,7 +113,7 @@ public class GameBoard {
         }
     }
 
-    public void setTheme(BoardTheme theme) {
+    public void setTheme(BoardGraphic theme) {
         currentTheme = theme;
 
         img1.setSvg(theme.getURL(Tile.ONE));
@@ -278,7 +280,7 @@ public class GameBoard {
     private int getRow(double mouseY) {
         double tileGapSize = tileLength.get() + gap;
         double row = (mouseY - yShift) / tileGapSize;
-        if (row < 0 || row > rows()) {
+        if (row < 0 || row >= rows()) {
             return -1;
         }
         return (int) row;
@@ -287,7 +289,7 @@ public class GameBoard {
     private int getCol(double mouseX) {
         double tileGapSize = tileLength.get() + gap;
         double col = (mouseX - xShift) / tileGapSize;
-        if (col < 0 || col > cols()) {
+        if (col < 0 || col >= cols()) {
             return -1;
         }
         return (int) col;

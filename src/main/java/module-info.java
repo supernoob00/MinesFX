@@ -7,4 +7,5 @@ module com.somerdin.minesweeper {
     exports com.somerdin.minesweeper.gui;
     exports com.somerdin.minesweeper.game;
     exports com.somerdin.minesweeper;
+    exports com.somerdin.minesweeper.style;
 }

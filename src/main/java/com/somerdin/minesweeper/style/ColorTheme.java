@@ -1,4 +1,4 @@
-package com.somerdin.minesweeper.gui;
+package com.somerdin.minesweeper.style;
 
 import javafx.scene.paint.Color;
 

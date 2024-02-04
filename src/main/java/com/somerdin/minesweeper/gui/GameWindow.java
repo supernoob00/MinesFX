@@ -2,16 +2,20 @@ package com.somerdin.minesweeper.gui;
 
 import com.somerdin.minesweeper.MinesweeperApplication;
 import com.somerdin.minesweeper.game.Difficulty;
+import com.somerdin.minesweeper.style.WindowGraphic;
 import javafx.application.Application;
-import javafx.beans.InvalidationListener;
-import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.effect.ColorAdjust;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
@@ -108,21 +112,23 @@ public class GameWindow {
     /* Info about current game, shown directly next to grid */
     private HBox currentGameInfo() {
         // game timer text
-        Text timerText = gameTimer();
+        HBox timerText = gameTimer();
 
         // container for game time and flag/bomb count text
         HBox textContainer = new HBox(timerText, flagInfo());
         textContainer.setAlignment(Pos.CENTER);
+        textContainer.setSpacing(36);
 
         HBox hBox = new HBox();
         hBox.getChildren().addAll(textContainer);
-        hBox.setAlignment(Pos.CENTER_LEFT);
+        hBox.setAlignment(Pos.CENTER);
+        hBox.setStyle("-fx-font-size: 24px");
+        hBox.setPadding(new Insets(12, 12, 12, 12));
         return hBox;
     }
 
-    private Text gameTimer() {
+    private HBox gameTimer() {
         Text text = new Text();
-
         NumberStringConverter converter = new NumberStringConverter() {
             @Override
             public String toString(Number value) {
@@ -142,21 +148,34 @@ public class GameWindow {
         };
         text.textProperty().bindBidirectional(
                 gameTimer.getElapsedTimeProperty(), converter);
-        return text;
+
+        ImageView timeIcon = new StaticSVGImage(WindowGraphic.TIME_ICON, 36).getImageView();
+        makeImageDarkModeAware(timeIcon);
+
+        HBox hBox = new HBox(timeIcon, text);
+        hBox.setAlignment(Pos.CENTER);
+        hBox.setSpacing(6);
+        return hBox;
     }
 
     private HBox flagInfo() {
         Text flagsPlacedText = new Text();
         Text separator = new Text("/");
         Text bombCountText = new Text();
-
         flagsPlacedText.textProperty().bind(
                 board.flaggedCountProperty().asString());
         bombCountText.textProperty().bind(
                 board.bombCountProperty().asString());
         HBox flagInfoContainer = new HBox(flagsPlacedText, separator, bombCountText);
         flagInfoContainer.setAlignment(Pos.CENTER);
-        return flagInfoContainer;
+
+        ImageView flagIcon = new StaticSVGImage(WindowGraphic.FLAG_ICON, 32).getImageView();
+        makeImageDarkModeAware(flagIcon);
+
+        HBox hBox = new HBox(flagIcon, flagInfoContainer);
+        hBox.setAlignment(Pos.CENTER);
+        hBox.setSpacing(6);
+        return hBox;
     }
 
     private Button pauseButton() {
@@ -309,5 +328,17 @@ public class GameWindow {
             board.draw();
         });
         return centerPane;
+    }
+
+    private void makeImageDarkModeAware(ImageView img) {
+        darkMode.addListener((observable, oldValue, newValue) -> {
+            ColorAdjust adjust = new ColorAdjust();
+            if (newValue) {
+                adjust.setBrightness(1);
+            } else {
+                adjust.setBrightness(0);
+            }
+            img.setEffect(adjust);
+        });
     }
 }
