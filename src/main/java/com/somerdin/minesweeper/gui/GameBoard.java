@@ -40,7 +40,7 @@ public class GameBoard {
     private double yShift;
 
     private Cell hoverCell;
-    private Cell selectedCell;
+    private Cell pressedCell;
 
     public GameBoard(Minefield field, GameTimer timer) {
         gameTimer = timer;
@@ -171,9 +171,7 @@ public class GameBoard {
     private void drawTile(double xShift, double yShift, int row, int col) {
         Cell cell = minefield.getCell(row, col);
 
-        assert (selectedCell != hoverCell);
-
-        if (cell == selectedCell) {
+        if (cell == pressedCell) {
             g.setFill(colorTheme.getSelectColor());
         } else if (cell == hoverCell) {
             g.setFill(colorTheme.getHoverColor());
@@ -279,20 +277,20 @@ public class GameBoard {
 
     private int getRow(double mouseY) {
         double tileGapSize = tileLength.get() + gap;
-        int row = (int) ((mouseY - yShift) / tileGapSize);
-        if (row < 0 || row > rows() - 1) {
+        double row = (mouseY - yShift) / tileGapSize;
+        if (row < 0 || row > rows()) {
             return -1;
         }
-        return row;
+        return (int) row;
     }
 
     private int getCol(double mouseX) {
         double tileGapSize = tileLength.get() + gap;
-        int col = (int) ((mouseX - xShift) / tileGapSize);
-        if (col < 0 || col > cols() - 1) {
+        double col = (mouseX - xShift) / tileGapSize;
+        if (col < 0 || col > cols()) {
             return -1;
         }
-        return col;
+        return (int) col;
     }
 
     private double cellCornerX(int col) {
@@ -346,39 +344,41 @@ public class GameBoard {
         });
 
         canvas.setOnMouseDragged(ev -> {
-            if (!isGameInteractive() || ev.getButton() != MouseButton.PRIMARY) {
+            if (!isGameInteractive()) {
                 return;
             }
-
-            hoverCell = null;
 
             int row = getRow(ev.getY());
             int col = getCol(ev.getX());
 
-            if (row == -1 || col == -1 || !isCellSelectable(row, col)) {
-                selectedCell = null;
-            } else {
-                selectedCell = minefield.getCell(row, col);
+            if (row == -1 || col == -1) {
+                System.out.println("Test");
+                hoverCell = null;
+                pressedCell = null;
+            } else if (!isCellSelectable(row, col)
+                    || minefield.getCell(row, col) != pressedCell) {
+                pressedCell = null;
+                hoverCell = minefield.getCell(row, col);
             }
             draw();
         });
 
         canvas.setOnMousePressed(ev -> {
-            System.out.println("click");
-            if (!isGameInteractive() || ev.getButton() != MouseButton.PRIMARY) {
-                System.out.println("FAIL");
-                return;
-            }
-
             int row = getRow(ev.getY());
             int col = getCol(ev.getX());
 
-            if (row == -1 || col == -1 || !isCellSelectable(row, col)) {
-                System.out.println("FAIL");
+            if (!isGameInteractive() || row == -1 || col == -1) {
                 return;
             }
 
-            selectedCell = minefield.getCell(row, col);
+            Cell cell = minefield.getCell(row, col);
+            if (ev.getButton() == MouseButton.PRIMARY && isCellSelectable(row, col)) {
+                pressedCell = cell;
+            } else if (ev.getButton() == MouseButton.SECONDARY
+                    && cell.getCellStatus() != CellStatus.REVEALED) {
+                pressedCell = null;
+                minefield.toggleFlag(row, col);
+            }
             draw();
         });
         canvas.setOnMouseReleased(ev -> {
@@ -387,57 +387,43 @@ public class GameBoard {
 
             if (row == -1 || col == -1
                     || minefield.gameResultProperty().get() != GameResult.IN_PROGRESS
-                    || gameTimer.isPaused()) {
+                    || gameTimer.isPaused()
+                    || pressedCell == null) {
                 return;
             }
 
-            selectedCell = null;
+            pressedCell = null;
 
             Cell cell = minefield.getCell(row, col);
-            switch (ev.getButton()) {
-                case PRIMARY:
-                    if (!isCellSelectable(row, col)) {
-                        break;
-                    }
-                    inProgress.set(true);
-                    hoverCell = null;
 
-                    if (cell.getCellStatus() != CellStatus.REVEALED) {
-                        minefield.chooseCell(row, col);
+            if (ev.getButton() == MouseButton.PRIMARY && isCellSelectable(row, col)) {
+                inProgress.set(true);
+                hoverCell = null;
 
-                        if (!gameTimer.isRunning()) {
-                            gameTimer.start();
-                        }
+                if (cell.getCellStatus() != CellStatus.REVEALED) {
+                    minefield.chooseCell(row, col);
 
-                        switch (minefield.getGameResult()) {
-                            case GAME_WON, GAME_LOST -> {
-                                inProgress.set(false);
-                                gameTimer.stop();
-                            }
-                        }
-                        draw();
+                    if (!gameTimer.isRunning()) {
+                        gameTimer.start();
                     }
-                    break;
-                case SECONDARY:
-                    if (cell.getCellStatus() != CellStatus.REVEALED) {
-                        CellStatus oldStatus = cell.getCellStatus();
-                        minefield.toggleFlag(row, col);
-                        draw();
+
+                    if (minefield.getGameResult() == GameResult.GAME_WON
+                            || minefield.getGameResult() == GameResult.GAME_LOST) {
+                        inProgress.set(false);
+                        gameTimer.stop();
                     }
-                    break;
-                default:
-                    break;
+                }
             }
             draw();
         });
         canvas.setOnMouseExited(ev -> {
             hoverCell = null;
-            selectedCell = null;
+            pressedCell = null;
             draw();
         });
         canvas.setOnMouseDragExited(ev -> {
             hoverCell = null;
-            selectedCell = null;
+            pressedCell = null;
             draw();
         });
     }
