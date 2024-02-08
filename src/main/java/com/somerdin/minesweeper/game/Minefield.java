@@ -100,10 +100,8 @@ public class Minefield {
         percentBomb = difficulty.bombPercent();
 
         int tiles = difficulty.rows() * difficulty.cols();
-        // TODO: use JDK21 Math.clamp() method instead
-        int bombsToPlace = Math.min(
-                difficulty.rows() * difficulty.cols() - 9,
-                Math.max(1, (int) (tiles * ((double) percentBomb / 100))));
+        int bombsToPlace = (int) (tiles * (double) (percentBomb / 100));
+        bombsToPlace = Math.clamp(bombsToPlace, 1, tiles - 9);
 
         // set class fields
         grid = new Cell[difficulty.rows()][difficulty.cols()];

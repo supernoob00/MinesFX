@@ -7,14 +7,11 @@ import javafx.application.Application;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.effect.ColorAdjust;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.text.Text;
@@ -320,7 +317,7 @@ public class GameWindow {
     }
 
     private Pane centerPane() {
-        ResizableCanvas canvas = board.getCanvas();
+        ZoomCanvas canvas = board.getCanvas();
 
         StackPane centerPane = new StackPane(canvas);
         centerPane.setAlignment(Pos.CENTER);
