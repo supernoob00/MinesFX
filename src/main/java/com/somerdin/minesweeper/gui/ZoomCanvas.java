@@ -3,8 +3,11 @@ package com.somerdin.minesweeper.gui;
 import com.github.weisj.jsvg.nodes.Rect;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.event.EventHandler;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -17,13 +20,14 @@ import javafx.scene.shape.Rectangle;
 import java.util.*;
 
 public class ZoomCanvas extends Canvas {
-
     // the size ratio of the updated zoom bounds to old bounds whenever a scroll event occurs
     public static final double ZOOM_RATIO = 0.9;
 
     private Rectangle zoomBounds = new Rectangle(0, 0, getWidth(), getHeight());
     private Rectangle zoomArea = new Rectangle(0, 0, getWidth(), getHeight());
 
+    // TODO: scale should only depend on x or y coordinate ratio
+    private SimpleDoubleProperty zoomScale = new SimpleDoubleProperty(1);
     private SimpleBooleanProperty redrawPendingProperty = new SimpleBooleanProperty();
 
     private double lastMouseX;
@@ -47,6 +51,9 @@ public class ZoomCanvas extends Canvas {
             double difference = newValue.doubleValue() - oldValue.doubleValue();
             zoomArea.heightProperty().set(zoomArea.getY() + difference);
         });
+
+        zoomScale.bind(Bindings.divide(zoomBounds.widthProperty(), zoomArea.widthProperty()));
+
         registerScrollListener();
         registerDragListener();
     }
@@ -124,35 +131,37 @@ public class ZoomCanvas extends Canvas {
         return (zy - zoomBounds.getY()) * zoomArea.getHeight() / zoomBounds.getHeight() + zoomArea.getY();
     }
 
+    public double zoomWidthRatio() {
+        return zoomBounds.getWidth() / zoomArea.getWidth();
+    }
+
+    public double zoomHeightRatio() {
+        return zoomBounds.getHeight() / zoomArea.getHeight();
+    }
+
+    public DoubleProperty zoomScaleProperty() {
+        return zoomScale;
+    }
+
+    public double getZoomScale() {
+        return zoomScale.get();
+    }
+
     public void fillRectWithZoom(double x, double y, double w, double h) {
-        double widthRatio = zoomBounds.getWidth() / zoomArea.getWidth();
-        double heightRatio = zoomBounds.getHeight() / zoomArea.getHeight();
+        x = (x - zoomArea.getX()) * zoomWidthRatio() + zoomBounds.getX();
+        y = (y - zoomArea.getY()) * zoomHeightRatio() + zoomBounds.getY();
 
-        x = (x - zoomArea.getX()) * widthRatio + zoomBounds.getX();
-        y = (y - zoomArea.getY()) * heightRatio + zoomBounds.getY();
-
-        w *= widthRatio;
-        h *= heightRatio;
+        w *= zoomWidthRatio();
+        h *= zoomHeightRatio();
 
         getGraphicsContext2D().fillRect(x, y, w, h);
     }
 
-    public void drawImageWithZoom(Image img, double x, double y, double w, double h) {
-        double widthRatio = zoomBounds.getWidth() / zoomArea.getWidth();
-        double heightRatio = zoomBounds.getHeight() / zoomArea.getHeight();
+    public void drawImageWithZoom(Image img, double x, double y) {
+        x = (x - zoomArea.getX()) * zoomWidthRatio() + zoomBounds.getX();
+        y = (y - zoomArea.getY()) * zoomHeightRatio() + zoomBounds.getY();
 
-        x = (x - zoomArea.getX()) * widthRatio + zoomBounds.getX();
-        y = (y - zoomArea.getY()) * heightRatio + zoomBounds.getY();
-
-        w *= widthRatio;
-        h *= heightRatio;
-
-        getGraphicsContext2D().drawImage(img, x, y, w, h);
-    }
-
-    @FunctionalInterface
-    public static interface MultiConsumer {
-        void accept(Object... items);
+        getGraphicsContext2D().drawImage(img, x, y);
     }
 
     public BooleanProperty redrawPendingProperty() {

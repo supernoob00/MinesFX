@@ -19,11 +19,26 @@ import java.net.URL;
  * because JavaFX does not natively support SVGs
  */
 public class SVGImage {
+    private static WritableImage writeSVGToImage(SVGDocument svg, int width, int height) {
+        WritableImage image = new WritableImage((int) width, (int) height);
+
+        BufferedImage bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D gr = bufferedImage.createGraphics();
+        gr.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        svg.render(null, gr, new ViewBox(0, 0, width, height));
+        gr.dispose();
+        return SwingFXUtils.toFXImage(bufferedImage, image);
+    }
+
     private SVGDocument svg;
     private WritableImage image;
 
-    private ObservableNumberValue observable;
+    private ObservableNumberValue size;
+    private ObservableNumberValue scale;
+
     private int lastSize;
+    private double lastScale;
+
     private double scaleFactor;
 
     /**
@@ -34,24 +49,23 @@ public class SVGImage {
      */
     public SVGImage(URL url,
                     ObservableNumberValue boundDimension,
+                    ObservableNumberValue boundScale,
                     double scale) {
         if (scale > 1 || scale <= 0) {
             throw new IllegalArgumentException("Scale factor must be between 0 and 1");
         }
         SVGLoader loader = new SVGLoader();
 
-        scaleFactor = scale;
-        svg = loader.load(url);
+        this.scaleFactor = scale;
+        this.svg = loader.load(url);
 
-        image = new WritableImage(boundDimension.intValue(), boundDimension.intValue());
-        observable = boundDimension;
-        lastSize = boundDimension.intValue();
+        this.size = boundDimension;
+        this.scale = boundScale;
 
-        convertSVG(lastSize, lastSize);
-    }
+        this.lastSize = boundDimension.intValue();
+        this.lastScale = boundScale.doubleValue();
 
-    public SVGImage(URL url, ObservableNumberValue boundDimension) {
-        this(url, boundDimension, 1);
+        this.image = writeSVGToImage(svg, lastSize, lastSize);
     }
 
     public SVGDocument getSvg() {
@@ -59,18 +73,19 @@ public class SVGImage {
     }
 
     public WritableImage getFXImage() {
-        if (lastSize != observable.intValue()) {
-            int newValue = observable.intValue();
-            convertSVG(newValue, newValue);
+        if (lastSize != size.intValue() || lastScale != scale.doubleValue()) {
+            int calculatedSize = (int) getCalculatedSize();
+            image = writeSVGToImage(svg, calculatedSize, calculatedSize);
 
-            lastSize = observable.intValue();
+            lastSize = size.intValue();
+            lastScale = scale.doubleValue();
         }
         return image;
     }
 
-    /* gets the size of currently cached JavaFX image */
-    public double getSize() {
-        return observable.doubleValue() * scaleFactor;
+    /* gets the true size of currently cached JavaFX image */
+    public double getCalculatedSize() {
+        return size.doubleValue() * scale.doubleValue() * scaleFactor;
     }
 
     /* sets the scale factor */
@@ -82,26 +97,8 @@ public class SVGImage {
     public void setSvg(URL url) {
         SVGLoader loader = new SVGLoader();
         svg = loader.load(url);
-        convertSVG(getSize(), getSize());
-    }
 
-    private void convertSVG(double width, double height) {
-        int adjustedWidth = (int) (width * scaleFactor);
-        int adjustedHeight = (int) (height * scaleFactor);
-
-        image = new WritableImage(adjustedWidth, adjustedHeight);
-
-        BufferedImage bufImg = new BufferedImage(
-                adjustedWidth, adjustedHeight, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D gr = bufImg.createGraphics();
-        gr.setRenderingHint(
-                RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        svg.render(null, gr, new ViewBox(
-                0,
-                0,
-                adjustedWidth,
-                adjustedHeight));
-        gr.dispose();
-        SwingFXUtils.toFXImage(bufImg, image);
+        int calculatedSize = (int) getCalculatedSize();
+        image = writeSVGToImage(svg, calculatedSize, calculatedSize);
     }
 }

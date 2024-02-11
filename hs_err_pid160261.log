@@ -18,7 +18,7 @@
 
 ---------------  S U M M A R Y ------------
 
-Command Line: -javaagent:/home/sam/.local/share/JetBrains/Toolbox/apps/intellij-idea-ultimate/lib/idea_rt.jar=37167:/home/sam/.local/share/JetBrains/Toolbox/apps/intellij-idea-ultimate/bin -Dfile.encoding=UTF-8 -Dsun.stdout.encoding=UTF-8 -Dsun.stderr.encoding=UTF-8 --module-path=/home/sam/.m2/repository/org/openjfx/javafx-controls/18.0.2/javafx-controls-18.0.2-linux.jar:/home/sam/.m2/repository/org/openjfx/javafx-base/18.0.2/javafx-base-18.0.2-linux.jar:/home/sam/repos/minesweeper/target/classes:/home/sam/.m2/repository/org/openjfx/javafx-graphics/18.0.2/javafx-graphics-18.0.2-linux.jar:/home/sam/.m2/repository/com/github/weisj/jsvg/1.2.0/jsvg-1.2.0.jar -Djdk.module.main=com.somerdin.minesweeper com.somerdin.minesweeper/com.somerdin.minesweeper.MinesweeperApplication
+Command Line: -javaagent:/home/sam/.local/share/JetBrains/Toolbox/apps/intellij-idea-ultimate/lib/idea_rt.jar=37167:/home/sam/.local/share/JetBrains/Toolbox/apps/intellij-idea-ultimate/bin -Dfile.encoding=UTF-8 -Dsun.stdout.encoding=UTF-8 -Dsun.stderr.encoding=UTF-8 --module-path=/home/sam/.m2/repository/org/openjfx/javafx-controls/18.0.2/javafx-controls-18.0.2-linux.jar:/home/sam/.m2/repository/org/openjfx/javafx-base/18.0.2/javafx-base-18.0.2-linux.jar:/home/sam/repos/minesweeper/target/classes:/home/sam/.m2/repository/org/openjfx/javafx-graphics/18.0.2/javafx-graphics-18.0.2-linux.jar:/home/sam/.m2/repository/com/github/weisj/jsvg/1.2.0/jsvg-1.2.0.jar -Djdk.module.main=com.somerdin.minesweeper com.somerdin.minesweeper/com.somerdin.minesweeper.Application
 
 Host: Intel(R) Core(TM) i7-5600U CPU @ 2.60GHz, 4 cores, 15G, Ubuntu 22.04.3 LTS
 Time: Tue Feb  6 06:53:28 2024 EST elapsed time: 24746.281332 seconds (0d 6h 52m 26s)
@@ -1731,7 +1731,7 @@ Total number of mappings: 1088
 
 VM Arguments:
 jvm_args: -javaagent:/home/sam/.local/share/JetBrains/Toolbox/apps/intellij-idea-ultimate/lib/idea_rt.jar=37167:/home/sam/.local/share/JetBrains/Toolbox/apps/intellij-idea-ultimate/bin -Dfile.encoding=UTF-8 -Dsun.stdout.encoding=UTF-8 -Dsun.stderr.encoding=UTF-8 --module-path=/home/sam/.m2/repository/org/openjfx/javafx-controls/18.0.2/javafx-controls-18.0.2-linux.jar:/home/sam/.m2/repository/org/openjfx/javafx-base/18.0.2/javafx-base-18.0.2-linux.jar:/home/sam/repos/minesweeper/target/classes:/home/sam/.m2/repository/org/openjfx/javafx-graphics/18.0.2/javafx-graphics-18.0.2-linux.jar:/home/sam/.m2/repository/com/github/weisj/jsvg/1.2.0/jsvg-1.2.0.jar -Djdk.module.main=com.somerdin.minesweeper 
-java_command: com.somerdin.minesweeper/com.somerdin.minesweeper.MinesweeperApplication
+java_command: com.somerdin.minesweeper/com.somerdin.minesweeper.Application
 java_class_path (initial): /home/sam/.m2/repository/org/openjfx/javafx-web/18.0.2/javafx-web-18.0.2.jar:/home/sam/.m2/repository/org/openjfx/javafx-web/18.0.2/javafx-web-18.0.2-linux.jar:/home/sam/.m2/repository/org/openjfx/javafx-media/18.0.2/javafx-media-18.0.2.jar:/home/sam/.m2/repository/org/openjfx/javafx-media/18.0.2/javafx-media-18.0.2-linux.jar:/home/sam/.m2/repository/org/openjfx/javafx-controls/18.0.2/javafx-controls-18.0.2.jar:/home/sam/.m2/repository/org/openjfx/javafx-graphics/18.0.2/javafx-graphics-18.0.2.jar:/home/sam/.m2/repository/org/openjfx/javafx-base/18.0.2/javafx-base-18.0.2.jar:/home/sam/.m2/repository/org/openjfx/javafx-fxml/18.0.2/javafx-fxml-18.0.2.jar:/home/sam/.m2/repository/org/openjfx/javafx-fxml/18.0.2/javafx-fxml-18.0.2-linux.jar
 Launcher Type: SUN_STANDARD
 

@@ -3,6 +3,7 @@ module com.somerdin.minesweeper {
     requires javafx.controls;
     requires javafx.swing;
     requires com.github.weisj.jsvg;
+    requires java.prefs;
 
     exports com.somerdin.minesweeper.gui;
     exports com.somerdin.minesweeper.game;

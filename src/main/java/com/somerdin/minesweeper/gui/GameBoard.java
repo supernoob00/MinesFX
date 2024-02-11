@@ -1,7 +1,7 @@
 package com.somerdin.minesweeper.gui;
 
 import com.somerdin.minesweeper.game.*;
-import com.somerdin.minesweeper.style.BoardGraphic;
+import com.somerdin.minesweeper.style.BoardGraphics;
 import com.somerdin.minesweeper.style.ColorTheme;
 import javafx.beans.property.*;
 import javafx.scene.canvas.GraphicsContext;
@@ -10,8 +10,6 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
-
-import java.util.Optional;
 
 public class GameBoard {
     private final SVGImage img1;
@@ -26,68 +24,68 @@ public class GameBoard {
     private final SVGImage imgExploded;
     private final SVGImage imgFlag;
     private final SVGImage imgMaybe;
-    private double scaleFactor = 0.75;
 
     private final ZoomCanvas canvas;
     private final GraphicsContext g;
     private final Minefield minefield;
     private final GameTimer gameTimer;
 
-    public BoardGraphic currentTheme = BoardGraphic.DEFAULT;
+    private BoardGraphics boardTheme = BoardGraphics.DEFAULT;
     private ColorTheme colorTheme = ColorTheme.DEFAULT;
 
     private DoubleProperty tileLength = new SimpleDoubleProperty();
-    private DoubleProperty zoomedTileLength = new SimpleDoubleProperty();
+    private DoubleProperty padding = new SimpleDoubleProperty(16);
+    private DoubleProperty gap = new SimpleDoubleProperty(4);
 
     private BooleanProperty inProgress = new SimpleBooleanProperty();
-    private double gap;
 
     private Cell hoverCell;
     private Cell pressedCell;
 
     public GameBoard(Minefield field, GameTimer timer) {
-        gameTimer = timer;
-        minefield = field;
+        this.gameTimer = timer;
+        this.minefield = field;
 
-        gap = 4;
-        canvas = new ZoomCanvas(0, 0);
-        g = canvas.getGraphicsContext2D();
+        this.canvas = new ZoomCanvas(0, 0);
+
+        this.g = canvas.getGraphicsContext2D();
+
 
         addCanvasMouseListeners();
 
         // TODO: create a DelayedChangeListener class to avoid repeated computation
         canvas.widthProperty().addListener((observable, oldValue, newValue) -> {
             tileLength.set(tileLength());
-            updateZoomBounds();
+            setNewGameZoomBounds();
         });
         canvas.heightProperty().addListener((observable, oldValue, newValue) -> {
             tileLength.set(tileLength());
-            updateZoomBounds();
+            setNewGameZoomBounds();
         });
 
         canvas.redrawPendingProperty().addListener(((observable, oldValue, newValue) -> {
             if (newValue) {
                 draw();
+                canvas.redrawPendingProperty().set(false);
             }
-            canvas.redrawPendingProperty().set(false);
         }));
 
         canvas.resize(500, 500);
 
-        img1 = new SVGImage(currentTheme.getURL(Tile.ONE), tileLength, scaleFactor);
-        img2 = new SVGImage(currentTheme.getURL(Tile.TWO), tileLength, scaleFactor);
-        img3 = new SVGImage(currentTheme.getURL(Tile.THREE), tileLength, scaleFactor);
-        img4 = new SVGImage(currentTheme.getURL(Tile.FOUR), tileLength, scaleFactor);
-        img5 = new SVGImage(currentTheme.getURL(Tile.FIVE), tileLength, scaleFactor);
-        img6 = new SVGImage(currentTheme.getURL(Tile.SIX), tileLength, scaleFactor);
-        img7 = new SVGImage(currentTheme.getURL(Tile.SEVEN), tileLength, scaleFactor);
-        img8 = new SVGImage(currentTheme.getURL(Tile.EIGHT), tileLength, scaleFactor);
-        imgMine = new SVGImage(currentTheme.getURL(Tile.MINE), tileLength, scaleFactor);
-        imgExploded = new SVGImage(currentTheme.getURL(Tile.EXPLODED), tileLength, scaleFactor);
-        imgFlag = new SVGImage(currentTheme.getURL(Tile.FLAG), tileLength, scaleFactor);
-        imgMaybe = new SVGImage(currentTheme.getURL(Tile.MAYBE), tileLength, scaleFactor);
+        img1 = new SVGImage(boardTheme.getURL(Tile.ONE), tileLength, canvas.zoomScaleProperty(), boardTheme.getScaleFactor());
+        img2 = new SVGImage(boardTheme.getURL(Tile.TWO), tileLength, canvas.zoomScaleProperty(), boardTheme.getScaleFactor());
+        img3 = new SVGImage(boardTheme.getURL(Tile.THREE), tileLength, canvas.zoomScaleProperty(), boardTheme.getScaleFactor());
+        img4 = new SVGImage(boardTheme.getURL(Tile.FOUR), tileLength, canvas.zoomScaleProperty(), boardTheme.getScaleFactor());
+        img5 = new SVGImage(boardTheme.getURL(Tile.FIVE), tileLength, canvas.zoomScaleProperty(), boardTheme.getScaleFactor());
+        img6 = new SVGImage(boardTheme.getURL(Tile.SIX), tileLength, canvas.zoomScaleProperty(), boardTheme.getScaleFactor());
+        img7 = new SVGImage(boardTheme.getURL(Tile.SEVEN), tileLength, canvas.zoomScaleProperty(), boardTheme.getScaleFactor());
+        img8 = new SVGImage(boardTheme.getURL(Tile.EIGHT), tileLength, canvas.zoomScaleProperty(), boardTheme.getScaleFactor());
+        imgMine = new SVGImage(boardTheme.getURL(Tile.MINE), tileLength, canvas.zoomScaleProperty(), boardTheme.getScaleFactor());
+        imgExploded = new SVGImage(boardTheme.getURL(Tile.EXPLODED), tileLength, canvas.zoomScaleProperty(), boardTheme.getScaleFactor());
+        imgFlag = new SVGImage(boardTheme.getURL(Tile.FLAG), tileLength, canvas.zoomScaleProperty(), boardTheme.getScaleFactor());
+        imgMaybe = new SVGImage(boardTheme.getURL(Tile.MAYBE), tileLength, canvas.zoomScaleProperty(), boardTheme.getScaleFactor());
 
-        draw();
+        canvas.redrawPendingProperty().set(true);
     }
 
     public ZoomCanvas getCanvas() {
@@ -99,13 +97,13 @@ public class GameBoard {
 
         inProgress.set(false);
         tileLength.set(tileLength());
-        updateZoomBounds();
+        setNewGameZoomBounds();
 
-        draw();
+        canvas.redrawPendingProperty().set(true);
     }
 
-    public void setTheme(BoardGraphic theme) {
-        currentTheme = theme;
+    public void setTheme(BoardGraphics theme) {
+        boardTheme = theme;
 
         img1.setSvg(theme.getURL(Tile.ONE));
         img2.setSvg(theme.getURL(Tile.TWO));
@@ -161,7 +159,7 @@ public class GameBoard {
         return minefield.getDifficulty();
     }
 
-    public void draw() {
+    private void draw() {
         if (!gameTimer.isPaused()) {
             g.setFill(colorTheme.getGapColor());
             g.clearRect(0, 0, width(), height());
@@ -209,12 +207,11 @@ public class GameBoard {
 
         Image image = getTileImage(row, col);
         if (image != null) {
+            System.out.println(canvas.getZoomScale());
             canvas.drawImageWithZoom(
                     image,
-                    x + (tileLength.get() - image.getWidth()) / 2,
-                    y + (tileLength.get() - image.getHeight()) / 2,
-                    tileLength.get() * 0.75,
-                    tileLength.get() * 0.75);
+                    x + 0.125 * tileLength.get(),
+                    y + 0.125 * tileLength.get());
         }
     }
 
@@ -285,22 +282,21 @@ public class GameBoard {
         return minefield.colCount();
     }
 
-    // TODO: clean this up
     /* other methods should use class field value to avoid unnecessary calculation */
     private double tileLength() {
         if (width() / cols() < height() / rows()) {
-            double totalGap = (cols() + 1) * gap;
+            double totalGap = (cols() + 1) * gap.get() + (2 * padding.get());
             return (width() - totalGap) / cols();
         }
-        double totalGap = (rows() + 1) * gap;
+        double totalGap = (rows() + 1) * gap.get() + (2 * padding.get());
         return (height() - totalGap) / rows();
     }
 
     private int getRow(double mouseY) {
         mouseY = canvas.zoomToNonZoomY(mouseY);
 
-        double tileGapSize = tileLength.get() + gap;
-        double row = (mouseY - canvas.getZoomBoundsY()) / tileGapSize;
+        double tileGapSize = tileLength.get() + gap.get();
+        double row = (mouseY - canvas.getZoomBoundsY() - padding.get()) / tileGapSize;
         if (row < 0 || row >= rows()) {
             return -1;
         }
@@ -310,8 +306,8 @@ public class GameBoard {
     private int getCol(double mouseX) {
         mouseX = canvas.zoomToNonZoomX(mouseX);
 
-        double tileGapSize = tileLength.get() + gap;
-        double col = (mouseX - canvas.getZoomBoundsX()) / tileGapSize;
+        double tileGapSize = tileLength.get() + gap.get();
+        double col = (mouseX - canvas.getZoomBoundsX() - padding.get()) / tileGapSize;
         if (col < 0 || col >= cols()) {
             return -1;
         }
@@ -319,39 +315,22 @@ public class GameBoard {
     }
 
     private double cellCornerX(int col) {
-        return gap + col * (tileLength.get() + gap);
+        return gap.get() + padding.get() + col * (tileLength.get() + gap.get());
     }
 
     private double cellCornerY(int row) {
-        return gap + row * (tileLength.get() + gap);
+        return gap.get() + padding.get() + row * (tileLength.get() + gap.get());
     }
 
-    private void updateZoomBounds() {
-        double gridWidth = (tileLength.get() + gap) * cols() + gap;
-        double gridHeight = (tileLength.get() + gap) * rows() + gap;
+    private void setNewGameZoomBounds() {
+        double gridWidth = (tileLength.get() + gap.get()) * cols() + gap.get() + (2 * padding.get());
+        double gridHeight = (tileLength.get() + gap.get()) * rows() + gap.get() + (2 * padding.get());
 
         double x = Math.max(0, (canvas.getWidth() - gridWidth) / 2);
         double y = Math.max(0, (canvas.getHeight() - gridHeight) / 2);
 
         canvas.setZoomBounds(x, y, gridWidth, gridHeight);
-//        canvas.setZoomArea(x, y, gridWidth, gridHeight);
-    }
-
-    private boolean isGameInteractive() {
-        return minefield.getGameResult() == GameResult.IN_PROGRESS
-                && !gameTimer.isPaused();
-    }
-
-    private boolean isCellHoverable(int row, int col) {
-        return minefield.getCell(row, col).getCellStatus() != CellStatus.REVEALED;
-    }
-
-    private boolean isCellSelectable(int row, int col) {
-        return minefield.getCell(row, col).getCellStatus() == CellStatus.HIDDEN;
-    }
-
-    private boolean isCellFlaggable(int row, int col) {
-        return minefield.getCell(row, col).getCellStatus() != CellStatus.REVEALED;
+        canvas.setZoomArea(x, y, gridWidth, gridHeight);
     }
 
     private void addCanvasMouseListeners() {
@@ -368,7 +347,7 @@ public class GameBoard {
             } else {
                 hoverCell = minefield.getCell(row, col);
             }
-            draw();
+            canvas.redrawPendingProperty().set(true);
         });
 
         canvas.setOnMouseDragged(ev -> {
@@ -387,7 +366,7 @@ public class GameBoard {
                 pressedCell = null;
                 hoverCell = minefield.getCell(row, col);
             }
-            draw();
+            canvas.redrawPendingProperty().set(true);
         });
 
         canvas.setOnMousePressed(ev -> {
@@ -406,7 +385,7 @@ public class GameBoard {
                 pressedCell = null;
                 minefield.toggleFlag(row, col);
             }
-            draw();
+            canvas.redrawPendingProperty().set(true);
         });
         canvas.setOnMouseReleased(ev -> {
             int row = getRow(ev.getY());
@@ -441,17 +420,34 @@ public class GameBoard {
                     }
                 }
             }
-            draw();
+            canvas.redrawPendingProperty().set(true);
         });
         canvas.setOnMouseExited(ev -> {
             hoverCell = null;
             pressedCell = null;
-            draw();
+            canvas.redrawPendingProperty().set(true);
         });
         canvas.setOnMouseDragExited(ev -> {
             hoverCell = null;
             pressedCell = null;
-            draw();
+            canvas.redrawPendingProperty().set(true);
         });
+    }
+
+    private boolean isGameInteractive() {
+        return minefield.getGameResult() == GameResult.IN_PROGRESS
+                && !gameTimer.isPaused();
+    }
+
+    private boolean isCellHoverable(int row, int col) {
+        return minefield.getCell(row, col).getCellStatus() != CellStatus.REVEALED;
+    }
+
+    private boolean isCellSelectable(int row, int col) {
+        return minefield.getCell(row, col).getCellStatus() == CellStatus.HIDDEN;
+    }
+
+    private boolean isCellFlaggable(int row, int col) {
+        return minefield.getCell(row, col).getCellStatus() != CellStatus.REVEALED;
     }
 }

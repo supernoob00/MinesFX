@@ -1,12 +1,13 @@
 package com.somerdin.minesweeper.gui;
 
-import com.somerdin.minesweeper.MinesweeperApplication;
+import com.somerdin.minesweeper.Application;
 import com.somerdin.minesweeper.game.Difficulty;
 import com.somerdin.minesweeper.style.WindowGraphic;
-import javafx.application.Application;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -19,11 +20,13 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.converter.NumberStringConverter;
 
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class GameWindow {
-    public static final String LIGHT_MODE = MinesweeperApplication.class.getResource("/themes/cupertino-light.css").toExternalForm();
-    public static final String DARK_MODE = MinesweeperApplication.class.getResource("/themes/dracula.css").toExternalForm();
+    public static final String LIGHT_MODE = Application.class.getResource("/themes/cupertino-light.css").toExternalForm();
+    public static final String DARK_MODE = Application.class.getResource("/themes/dracula.css").toExternalForm();
 
     private static final int MIN_SIZE = 4;
     private static final int MAX_SIZE = 80;
@@ -38,6 +41,8 @@ public class GameWindow {
     private GameTimer gameTimer;
 
     private Stage parentStage;
+
+    private ToggleGroup difficultyToggle;
 
     public GameWindow(Stage parent, GameBoard gameBoard, GameTimer timer) {
         parentStage = parent;
@@ -91,13 +96,17 @@ public class GameWindow {
         return borderPane;
     }
 
-    public void toggleTheme() {
-        if (darkMode.get()) {
-            Application.setUserAgentStylesheet(LIGHT_MODE);
+    public void setTheme(boolean dark) {
+        if (!dark) {
+            javafx.application.Application.setUserAgentStylesheet(LIGHT_MODE);
         } else {
-            Application.setUserAgentStylesheet(DARK_MODE);
+            javafx.application.Application.setUserAgentStylesheet(DARK_MODE);
         }
-        darkMode.set(!darkMode.get());
+        darkMode.set(dark);
+    }
+
+    public ToggleGroup getDifficultyToggle() {
+        return difficultyToggle;
     }
 
     private ToolBar toolBar() {
@@ -205,10 +214,12 @@ public class GameWindow {
     private MenuBar menuBar() {
         CheckMenuItem changeTheme = new CheckMenuItem("Dark Mode");
         changeTheme.setOnAction(ev -> {
-            toggleTheme();
+            setTheme(!darkMode.get());
+            Application.PREFERENCES.putBoolean(Application.DARK_MODE_PREF, darkMode.get());
         });
 
         Menu optionsMenu = new Menu("Options");
+
         optionsMenu.getItems().addAll(difficultyMenu(), changeTheme);
 
         Menu gameMenu = new Menu("Game");
@@ -218,21 +229,36 @@ public class GameWindow {
         return menuBar;
     }
 
+    private RadioMenuItem difficultyMenuItem(String name, Difficulty difficulty) {
+        RadioMenuItem item = new RadioMenuItem(name);
+        item.setOnAction(ev -> {
+            startGameAfterConfirmation(difficulty);
+            Application.PREFERENCES.put(Application.DIFFICULTY_PREF, difficulty.toString());
+        });
+        return item;
+    }
+
     private Menu difficultyMenu() {
         Menu difficultyMenu = new Menu("Difficulty");
 
         // create radio menu items group
-        RadioMenuItem easyMenuItem = new RadioMenuItem("Easy");
-        easyMenuItem.setOnAction(ev -> startGameAfterConfirmation(Difficulty.EASY));
-        RadioMenuItem mediumMenuItem = new RadioMenuItem("Medium");
-        mediumMenuItem.setOnAction(ev -> startGameAfterConfirmation(Difficulty.MEDIUM));
-        RadioMenuItem hardMenuItem = new RadioMenuItem("Hard");
-        hardMenuItem.setOnAction(ev -> startGameAfterConfirmation(Difficulty.HARD));
+        RadioMenuItem easyMenuItem = difficultyMenuItem("Easy", Difficulty.EASY);
+        RadioMenuItem mediumMenuItem = difficultyMenuItem("Medium", Difficulty.MEDIUM);
+        RadioMenuItem hardMenuItem = difficultyMenuItem("Hard", Difficulty.HARD);
         RadioMenuItem customMenuItem = new RadioMenuItem("Custom...");
 
         ToggleGroup difficultyGroup = new ToggleGroup();
         difficultyGroup.getToggles().addAll(
                 easyMenuItem, mediumMenuItem, hardMenuItem, customMenuItem);
+
+        String prefDifficulty = Application.PREFERENCES.get(Application.DIFFICULTY_PREF, Difficulty.EASY.toString());
+        if (prefDifficulty.equals(Difficulty.EASY.toString())) {
+            difficultyGroup.selectToggle(easyMenuItem);
+        } else if (prefDifficulty.equals(Difficulty.MEDIUM.toString())) {
+            difficultyGroup.selectToggle(mediumMenuItem);
+        } else if (prefDifficulty.equals(Difficulty.HARD.toString())) {
+            difficultyGroup.selectToggle(hardMenuItem);
+        }
 
         Stage customDifficulty = customDifficultyOptions();
         customMenuItem.setOnAction(ev -> {
@@ -320,9 +346,11 @@ public class GameWindow {
         ZoomCanvas canvas = board.getCanvas();
 
         StackPane centerPane = new StackPane(canvas);
+//        centerPane.setStyle("-fx-border-color: beige; -fx-border-width: 6px");
         centerPane.setAlignment(Pos.CENTER);
+
         parentStage.fullScreenProperty().addListener((observable, oldValue, newValue) -> {
-            board.draw();
+            canvas.redrawPendingProperty().set(true);
         });
         return centerPane;
     }
