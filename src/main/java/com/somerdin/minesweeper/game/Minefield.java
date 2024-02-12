@@ -4,8 +4,6 @@ import javafx.beans.property.*;
 
 import java.io.*;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Queue;
 
 public class Minefield {
@@ -38,56 +36,8 @@ public class Minefield {
         startNewGame(difficulty);
     }
 
-    /* create a minefield from text representation */
-    public Minefield(File file) {
-        firstMove.set(true);
-        result.set(GameResult.IN_PROGRESS);
+    private Minefield() {
 
-        try (BufferedReader in = new BufferedReader(new FileReader(file));
-             BufferedReader in2 = new BufferedReader(new FileReader(file));) {
-            int rows = 0, cols = 0;
-
-            String line = in.readLine();
-            rows++;
-            cols = line.length();
-
-            while (in.readLine() != null) {
-                rows++;
-            }
-
-            grid = new Cell[rows][cols];
-            neighborCounts = new int[rows][cols];
-
-            int c;
-            int i = 0, j = 0;
-            while ((c = in2.read()) != -1) {
-                switch (c) {
-                    case '\n': // new row marker
-                        j = -1;
-                        i++;
-                        break;
-                    case 'B': // revealed bomb
-                        grid[i][j] = new Cell(CellStatus.REVEALED, false);
-                        addBomb(i, j);
-                        break;
-                    case 'b': // hidden bomb
-                        grid[i][j] = new Cell(CellStatus.HIDDEN, false);
-                        addBomb(i, j);
-                        break;
-                    case '#': // hidden, no bomb
-                        grid[i][j] = new Cell(CellStatus.HIDDEN, false);
-                        break;
-                    case 'X': // revealed, no bomb
-                        grid[i][j] = new Cell(CellStatus.REVEALED, false);
-                        break;
-                    default:
-                        break;
-                }
-                j++;
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Error in reading file");
-        }
     }
 
     public void startNewGame(Difficulty difficulty) {
@@ -120,7 +70,7 @@ public class Minefield {
         // matrix as the guide
         for (int i = 0; i < difficulty.rows(); i++) {
             for (int j = 0; j < difficulty.cols(); j++) {
-                grid[i][j] = new Cell(CellStatus.HIDDEN, false);
+                grid[i][j] = new Cell(CellStatus.HIDDEN);
 
                 if (neighborCounts[i][j] == BOMB_CELL) {
                     addBomb(i, j);
@@ -459,6 +409,131 @@ public class Minefield {
                 randColRange--;
             }
             randRowRange--;
+        }
+    }
+
+    /* Utility class for serializing and deserializing a Minefield */
+    private static class MinefieldSerializer {
+        private static final char ROW_DIVIDER = '\n';
+        private static final char HIDDEN_EMPTY = '#';
+        private static final char REVEALED_EMPTY = 'X';
+        private static final char FLAGGED_EMPTY  = 'f';
+        private static final char QUESTION_EMPTY = 'q';
+        private static final char HIDDEN_BOMB = 'b';
+        private static final char REVEALED_BOMB = 'B';
+        private static final char FLAGGED_BOMB = 'F';
+        private static final char QUESTION_BOMB = 'Q';
+        private static final char DETONATED_BOMB = 'E';
+
+        /* create a minefield from text representation */
+        public Minefield createFromFile(File file) {
+            Minefield minefield = new Minefield();
+
+            minefield.firstMove.set(true);
+            minefield.result.set(GameResult.IN_PROGRESS);
+
+            // use two readers; one to determine dimensions of board to create,
+            // and other to determine how to fill the cells
+            try (BufferedReader dimensionReader = new BufferedReader(new FileReader(file));
+                 BufferedReader cellReader = new BufferedReader(new FileReader(file));) {
+                int rows = 0, cols = 0;
+
+                String line = dimensionReader.readLine();
+                rows++;
+                cols = line.length();
+
+                while (dimensionReader.readLine() != null) {
+                    rows++;
+                }
+
+                minefield.grid = new Cell[rows][cols];
+                minefield.neighborCounts = new int[rows][cols];
+
+                int c;
+                int i = 0, j = 0;
+                while ((c = cellReader.read()) != -1) {
+                    switch (c) {
+                        case ROW_DIVIDER -> {
+                            j = -1;
+                            i++;
+                        }
+                        case REVEALED_BOMB -> {
+                            minefield.grid[i][j] = new Cell(CellStatus.REVEALED);
+                            minefield.addBomb(i, j);
+                        }
+                        case HIDDEN_BOMB -> {
+                            minefield.grid[i][j] = new Cell(CellStatus.HIDDEN);
+                            minefield.addBomb(i, j);
+                        }
+                        case FLAGGED_BOMB -> {
+                            minefield.grid[i][j] = new Cell(CellStatus.FLAGGED);
+                            minefield.addBomb(i, j);
+                        }
+                        case QUESTION_BOMB -> {
+                            minefield.grid[i][j] = new Cell(CellStatus.FLAGGED_QUESTION);
+                            minefield.addBomb(i, j);
+                        }
+                        case DETONATED_BOMB -> {
+                            Cell cell = new Cell(CellStatus.REVEALED);
+                            minefield.grid[i][j] = cell;
+                            minefield.addBomb(i, j);
+                            cell.setBombStatus(BombStatus.DETONATED);
+                        }
+                        case HIDDEN_EMPTY -> minefield.grid[i][j] = new Cell(CellStatus.HIDDEN);
+                        case REVEALED_EMPTY -> minefield.grid[i][j] = new Cell(CellStatus.REVEALED);
+                        case FLAGGED_EMPTY -> minefield.grid[i][j] = new Cell(CellStatus.FLAGGED);
+                        case QUESTION_EMPTY -> minefield.grid[i][j] = new Cell(CellStatus.FLAGGED_QUESTION);
+                        default -> throw new IllegalStateException("Unexpected character");
+                    }
+                    j++;
+                }
+            } catch (IOException e) {
+                throw new RuntimeException("Error in reading file");
+            }
+            return minefield;
+        }
+
+        public static String toFileString(Minefield minefield) {
+            Cell[][] grid = minefield.grid;
+            StringBuilder board = new StringBuilder();
+
+            for (int i = 0; i < grid.length; i++) {
+                for (int j = 0; j < grid[0].length; j++) {
+                    Cell cell = grid[i][j];
+                    switch (cell.getCellStatus()) {
+                        case HIDDEN -> {
+                            switch (cell.getBombStatus()) {
+                                case NONE -> board.append(HIDDEN_EMPTY);
+                                case UNDETONATED -> board.append(HIDDEN_BOMB);
+                                default -> throw new IllegalArgumentException("Bomb should not be detonated.");
+                            }
+                        }
+                        case REVEALED -> {
+                            switch (cell.getBombStatus()) {
+                                case NONE -> board.append(REVEALED_EMPTY);
+                                case UNDETONATED -> board.append(REVEALED_BOMB);
+                                case DETONATED -> board.append(DETONATED_BOMB);
+                            }
+                        }
+                        case FLAGGED -> {
+                            switch (cell.getBombStatus()) {
+                                case NONE -> board.append(FLAGGED_EMPTY);
+                                case UNDETONATED -> board.append(FLAGGED_BOMB);
+                                default -> throw new IllegalArgumentException("Bomb should not be detonated.");
+                            }
+                        }
+                        case FLAGGED_QUESTION -> {
+                            switch (cell.getBombStatus()) {
+                                case NONE -> board.append(QUESTION_EMPTY);
+                                case UNDETONATED -> board.append(QUESTION_BOMB);
+                                default -> throw new IllegalArgumentException("Bomb should not be detonated.");
+                            }
+                        }
+                    }
+                }
+                board.append(ROW_DIVIDER);
+            }
+            return board.toString();
         }
     }
 }

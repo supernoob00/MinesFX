@@ -6,8 +6,6 @@ import com.somerdin.minesweeper.style.WindowGraphic;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -20,13 +18,11 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.converter.NumberStringConverter;
 
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class GameWindow {
-    public static final String LIGHT_MODE = Application.class.getResource("/themes/cupertino-light.css").toExternalForm();
-    public static final String DARK_MODE = Application.class.getResource("/themes/dracula.css").toExternalForm();
+    public static final String LIGHT_MODE_URL = Application.class.getResource("/themes/cupertino-light.css").toExternalForm();
+    public static final String DARK_MODE_URL = Application.class.getResource("/themes/dracula.css").toExternalForm();
 
     private static final int MIN_SIZE = 4;
     private static final int MAX_SIZE = 80;
@@ -63,6 +59,7 @@ public class GameWindow {
         content.setBottom(currentGameInfo());
 
         borderPane.setCenter(content);
+        setTheme(Application.PREFERENCES.getBoolean(Application.DARK_MODE_PREF, false));
     }
 
     /* start new game with specified settings */
@@ -98,9 +95,9 @@ public class GameWindow {
 
     public void setTheme(boolean dark) {
         if (!dark) {
-            javafx.application.Application.setUserAgentStylesheet(LIGHT_MODE);
+            javafx.application.Application.setUserAgentStylesheet(LIGHT_MODE_URL);
         } else {
-            javafx.application.Application.setUserAgentStylesheet(DARK_MODE);
+            javafx.application.Application.setUserAgentStylesheet(DARK_MODE_URL);
         }
         darkMode.set(dark);
     }

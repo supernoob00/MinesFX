@@ -8,17 +8,17 @@ import com.somerdin.minesweeper.gui.GameWindow;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-import java.io.File;
 import java.io.IOException;
+import java.util.Properties;
 import java.util.prefs.Preferences;
 
 public class Application extends javafx.application.Application {
     public static final Preferences PREFERENCES = Preferences.userRoot().node(Application.class.getName());
 
+    public static final String SAVED_BOARD_PREF = "saved_board";
     public static final String DARK_MODE_PREF = "dark_mode";
     public static final String DIFFICULTY_PREF = "difficulty";
     public static final String FULL_SCREEN_PREF = "full_screen";
-
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -40,17 +40,19 @@ public class Application extends javafx.application.Application {
         GameBoard gameBoard = new GameBoard(minefield, timer);
 
         GameWindow gameWindow = new GameWindow(stage, gameBoard, timer);
-        gameWindow.setTheme(PREFERENCES.getBoolean(DARK_MODE_PREF, false));
 
         Scene scene = new Scene(gameWindow.getBorderPane());
 
         stage.setTitle("Minesweeper");
         stage.setScene(scene);
+        stage.setOnCloseRequest(ev -> {
+
+        });
         stage.show();
     }
 
     public static void main(String[] args) {
-        javafx.application.Application.setUserAgentStylesheet(GameWindow.LIGHT_MODE);
+        javafx.application.Application.setUserAgentStylesheet(GameWindow.LIGHT_MODE_URL);
         javafx.application.Application.launch();
     }
 }

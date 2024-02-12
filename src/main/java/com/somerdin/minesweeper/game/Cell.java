@@ -4,9 +4,9 @@ public class Cell {
     private CellStatus cellStatus;
     private BombStatus bombStatus;
 
-    public Cell(CellStatus cellStatus, boolean bombStatus) {
+    public Cell(CellStatus cellStatus) {
         this.cellStatus = cellStatus;
-        this.bombStatus = bombStatus ? BombStatus.UNDETONATED : BombStatus.NONE;
+        this.bombStatus = BombStatus.NONE;
     }
 
     public boolean isBomb() {
@@ -22,6 +22,9 @@ public class Cell {
     }
 
     public void setBombStatus(BombStatus status) {
+        if (status == BombStatus.DETONATED && cellStatus != CellStatus.REVEALED) {
+            throw new IllegalArgumentException("Bomb status cannot be set to detonated if cell is not revealed.");
+        }
         bombStatus = status;
     }
 

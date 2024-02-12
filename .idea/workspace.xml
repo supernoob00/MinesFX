@@ -6,15 +6,10 @@
   <component name="ChangeListManager">
     <list default="true" id="33651b82-1023-42cd-9981-d500d28a25d3" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/hs_err_pid160261.log" beforeDir="false" afterPath="$PROJECT_DIR$/hs_err_pid160261.log" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/MinesweeperApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/Application.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/gui/GameBoard.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/gui/GameBoard.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/Application.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/Application.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/game/Cell.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/game/Cell.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/game/Minefield.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/game/Minefield.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/gui/GameWindow.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/gui/GameWindow.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/gui/SVGImage.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/gui/SVGImage.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/gui/ZoomCanvas.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/gui/ZoomCanvas.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/style/BoardGraphic.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/somerdin/minesweeper/style/BoardGraphics.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/module-info.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/module-info.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -149,7 +144,7 @@
       <workItem from="1706670934940" duration="861000" />
       <workItem from="1707004371290" duration="32099000" />
       <workItem from="1707160194791" duration="12494000" />
-      <workItem from="1707242528374" duration="38071000" />
+      <workItem from="1707242528374" duration="46036000" />
     </task>
     <servers />
   </component>
