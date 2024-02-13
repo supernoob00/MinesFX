@@ -144,21 +144,6 @@ public class Minefield {
         return new Difficulty(rowCount(), colCount(), percentBomb);
     }
 
-    @Override
-    public String toString() {
-        StringBuilder board = new StringBuilder();
-
-        for (int i = 0; i < rowCount(); i++) {
-            StringBuilder row = new StringBuilder();
-            for (int j = 0; j < colCount(); j++) {
-                row.append(getCellChar(i, j));
-            }
-            board.append(row);
-            board.append(System.lineSeparator());
-        }
-        return board.toString();
-    }
-
     public void addBomb(int row, int col) {
         assert !grid[row][col].isBomb();
 
@@ -241,6 +226,21 @@ public class Minefield {
             case FLAGGED_QUESTION -> cell.setCellStatus(CellStatus.HIDDEN);
             default -> throw new IllegalStateException("Can't toggle flag for this cell");
         }
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder board = new StringBuilder();
+
+        for (int i = 0; i < rowCount(); i++) {
+            StringBuilder row = new StringBuilder();
+            for (int j = 0; j < colCount(); j++) {
+                row.append(getCellChar(i, j));
+            }
+            board.append(row);
+            board.append(System.lineSeparator());
+        }
+        return board.toString();
     }
 
     private void revealCell(int row, int col) {
@@ -413,7 +413,7 @@ public class Minefield {
     }
 
     /* Utility class for serializing and deserializing a Minefield */
-    private static class MinefieldSerializer {
+    public static class MinefieldSerializer {
         private static final char ROW_DIVIDER = '\n';
         private static final char HIDDEN_EMPTY = '#';
         private static final char REVEALED_EMPTY = 'X';
@@ -426,7 +426,7 @@ public class Minefield {
         private static final char DETONATED_BOMB = 'E';
 
         /* create a minefield from text representation */
-        public Minefield createFromFile(File file) {
+        public static Minefield fromString(String s) {
             Minefield minefield = new Minefield();
 
             minefield.firstMove.set(true);
@@ -434,8 +434,9 @@ public class Minefield {
 
             // use two readers; one to determine dimensions of board to create,
             // and other to determine how to fill the cells
-            try (BufferedReader dimensionReader = new BufferedReader(new FileReader(file));
-                 BufferedReader cellReader = new BufferedReader(new FileReader(file));) {
+            // TODO: replace with string
+            try (BufferedReader dimensionReader = new BufferedReader(new StringReader(s));
+                 BufferedReader cellReader = new BufferedReader(new StringReader(s));) {
                 int rows = 0, cols = 0;
 
                 String line = dimensionReader.readLine();

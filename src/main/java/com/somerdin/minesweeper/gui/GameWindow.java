@@ -24,41 +24,31 @@ public class GameWindow {
     public static final String LIGHT_MODE_URL = Application.class.getResource("/themes/cupertino-light.css").toExternalForm();
     public static final String DARK_MODE_URL = Application.class.getResource("/themes/dracula.css").toExternalForm();
 
-    private static final int MIN_SIZE = 4;
-    private static final int MAX_SIZE = 80;
+    private final BooleanProperty darkMode = new SimpleBooleanProperty();
 
-    private static final int MIN_BOMB_PERCENT = 1;
-    private static final int MAX_BOMB_PERCENT = 99;
+    private final Pane rootNode;
+    private final Stage parentStage;
+    private final GameBoard gameBoard;
+    private final GameTimer gameTimer;
 
-    private BooleanProperty darkMode = new SimpleBooleanProperty();
+    public GameWindow(Stage parentStage, GameBoard gameBoard, GameTimer gameTimer) {
+        this.parentStage = parentStage;
+        this.gameBoard = gameBoard;
+        this.gameTimer = gameTimer;
 
-    private GameBoard board;
-    private BorderPane borderPane;
-    private GameTimer gameTimer;
-
-    private Stage parentStage;
-
-    private ToggleGroup difficultyToggle;
-
-    public GameWindow(Stage parent, GameBoard gameBoard, GameTimer timer) {
-        parentStage = parent;
-
-        board = gameBoard;
-        gameTimer = timer;
-
-        // use a border pane as the root node; top is the menu bar and center
-        // is everything else
-        borderPane = new BorderPane();
-        borderPane.setTop(menuBar());
+        // top of root BorderPane is the menu bar and its center is everything else
+        BorderPane root = new BorderPane();
+        root.setTop(menuBar());
 
         // everything that's not the top menu bar
-
         BorderPane content = new BorderPane();
         content.setTop(toolBar());
         content.setCenter(centerPane());
         content.setBottom(currentGameInfo());
+        root.setCenter(content);
 
-        borderPane.setCenter(content);
+        this.rootNode = root;
+
         setTheme(Application.PREFERENCES.getBoolean(Application.DARK_MODE_PREF, false));
     }
 
@@ -68,11 +58,11 @@ public class GameWindow {
         gameTimer.reset();
         gameTimer.pausedProperty().set(false);
         gameTimer.isRunningProperty().set(false);
-        board.startNewGame(difficulty);
+        gameBoard.startNewGame(difficulty);
     }
 
     public void startGameAfterConfirmation(Difficulty difficulty) {
-        if (board.inProgressProperty().get()) {
+        if (gameBoard.inProgressProperty().get()) {
             Alert alert = new Alert(
                     Alert.AlertType.NONE,
                     "Are you sure you want to start a new game?",
@@ -89,8 +79,8 @@ public class GameWindow {
         }
     }
 
-    public BorderPane getBorderPane() {
-        return borderPane;
+    public Pane getRootNode() {
+        return rootNode;
     }
 
     public void setTheme(boolean dark) {
@@ -100,10 +90,6 @@ public class GameWindow {
             javafx.application.Application.setUserAgentStylesheet(DARK_MODE_URL);
         }
         darkMode.set(dark);
-    }
-
-    public ToggleGroup getDifficultyToggle() {
-        return difficultyToggle;
     }
 
     private ToolBar toolBar() {
@@ -166,9 +152,9 @@ public class GameWindow {
         Text separator = new Text("/");
         Text bombCountText = new Text();
         flagsPlacedText.textProperty().bind(
-                board.flaggedCountProperty().asString());
+                gameBoard.flaggedCountProperty().asString());
         bombCountText.textProperty().bind(
-                board.bombCountProperty().asString());
+                gameBoard.bombCountProperty().asString());
         HBox flagInfoContainer = new HBox(flagsPlacedText, separator, bombCountText);
         flagInfoContainer.setAlignment(Pos.CENTER);
 
@@ -184,7 +170,7 @@ public class GameWindow {
     private Button pauseButton() {
         Button pauseButton = new Button("Pause");
 
-        pauseButton.disableProperty().bind(board.inProgressProperty().not());
+        pauseButton.disableProperty().bind(gameBoard.inProgressProperty().not());
 
         pauseButton.textProperty().bind(Bindings.createStringBinding(() -> {
             return gameTimer.isRunning() ? "Pause" : "Resume";
@@ -203,7 +189,7 @@ public class GameWindow {
 
     private Button restartButton() {
         Button restartButton = new Button("New Game");
-        restartButton.setOnAction(ev -> startGameAfterConfirmation(board.getDifficulty()));
+        restartButton.setOnAction(ev -> startGameAfterConfirmation(gameBoard.getDifficulty()));
         restartButton.setFocusTraversable(false);
         return restartButton;
     }
@@ -291,11 +277,11 @@ public class GameWindow {
         };
 
         Spinner<Integer> rowSpinner = integerSpinner(
-                formatterFactory.get(), MIN_SIZE, MAX_SIZE);
+                formatterFactory.get(), Difficulty.MIN_ROWS, Difficulty.MAX_ROWS);
         Spinner<Integer> colSpinner = integerSpinner(
-                formatterFactory.get(), MIN_SIZE, MAX_SIZE);
+                formatterFactory.get(), Difficulty.MIN_COLS, Difficulty.MAX_COLS);
         Spinner<Integer> bombSpinner = integerSpinner(
-                formatterFactory.get(), MIN_BOMB_PERCENT, MAX_BOMB_PERCENT
+                formatterFactory.get(), Difficulty.MIN_BOMB_PERCENT, Difficulty.MAX_BOMB_PERCENT
         );
 
         Button startButton = new Button("New Game");
@@ -340,7 +326,7 @@ public class GameWindow {
     }
 
     private Pane centerPane() {
-        ZoomCanvas canvas = board.getCanvas();
+        ZoomCanvas canvas = gameBoard.getCanvas();
 
         StackPane centerPane = new StackPane(canvas);
 //        centerPane.setStyle("-fx-border-color: beige; -fx-border-width: 6px");

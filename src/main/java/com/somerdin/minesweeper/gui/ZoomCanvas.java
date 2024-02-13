@@ -4,10 +4,7 @@ import com.github.weisj.jsvg.nodes.Rect;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.*;
 import javafx.event.EventHandler;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -23,12 +20,12 @@ public class ZoomCanvas extends Canvas {
     // the size ratio of the updated zoom bounds to old bounds whenever a scroll event occurs
     public static final double ZOOM_RATIO = 0.9;
 
-    private Rectangle zoomBounds = new Rectangle(0, 0, getWidth(), getHeight());
-    private Rectangle zoomArea = new Rectangle(0, 0, getWidth(), getHeight());
+    private final Rectangle zoomBounds = new Rectangle(0, 0, getWidth(), getHeight());
+    private final Rectangle zoomArea = new Rectangle(0, 0, getWidth(), getHeight());
 
     // TODO: scale should only depend on x or y coordinate ratio
-    private SimpleDoubleProperty zoomScale = new SimpleDoubleProperty(1);
-    private SimpleBooleanProperty redrawPendingProperty = new SimpleBooleanProperty();
+    private final SimpleDoubleProperty zoomScale = new SimpleDoubleProperty(1);
+    private final SimpleBooleanProperty redrawPendingProperty = new SimpleBooleanProperty();
 
     private double lastMouseX;
     private double lastMouseY;
@@ -56,6 +53,8 @@ public class ZoomCanvas extends Canvas {
 
         registerScrollListener();
         registerDragListener();
+
+        resize(initialWidth, initialHeight);
     }
 
     @Override
@@ -93,6 +92,22 @@ public class ZoomCanvas extends Canvas {
         return zoomBounds;
     }
 
+    public Rectangle getZoomArea() {
+        return zoomArea;
+    }
+
+    public DoubleProperty zoomScaleProperty() {
+        return zoomScale;
+    }
+
+    public double getZoomScale() {
+        return zoomScale.get();
+    }
+
+    public BooleanProperty redrawPendingProperty() {
+        return redrawPendingProperty;
+    }
+
     public double getZoomBoundsX() {
         return zoomBounds.getX();
     }
@@ -109,10 +124,7 @@ public class ZoomCanvas extends Canvas {
         return zoomBounds.getHeight();
     }
 
-    public Rectangle getZoomArea() {
-        return zoomArea;
-    }
-
+    // TODO: change method name for this
     public double getAdjustedX(double x) {
         double widthRatio = zoomBounds.getWidth() / zoomArea.getWidth();
         return (x - zoomArea.getX()) * widthRatio + zoomBounds.getX();
@@ -139,12 +151,36 @@ public class ZoomCanvas extends Canvas {
         return zoomBounds.getHeight() / zoomArea.getHeight();
     }
 
-    public DoubleProperty zoomScaleProperty() {
-        return zoomScale;
+    public void setZoomBounds(double x, double y, double w, double h) {
+        double widthRatio = w / zoomBounds.getWidth();
+        double heightRatio = h / zoomBounds.getHeight();
+
+
+
+        zoomBounds.setX(x);
+        zoomBounds.setY(y);
+        zoomBounds.setWidth(w);
+        zoomBounds.setHeight(h);
+
+        if (Math.abs(widthRatio - heightRatio) < 0.00001) {
+            setZoomArea(
+                    zoomBounds.getX() + x * widthRatio,
+                    zoomBounds.getY() + y * heightRatio,
+                    w * widthRatio,
+                    h * heightRatio);
+        } else {
+            setZoomArea(x, y, w, h);
+        }
     }
 
-    public double getZoomScale() {
-        return zoomScale.get();
+    public void setZoomArea(double x, double y, double w, double h) {
+        zoomArea.setWidth(Math.clamp(w, 50, zoomBounds.getWidth()));
+        zoomArea.setHeight(Math.clamp(h, 50, zoomBounds.getHeight()));
+
+        zoomArea.setX(Math.clamp(x, zoomBounds.getX(), zoomBounds.getX() + zoomBounds.getWidth() - zoomArea.getWidth()));
+        zoomArea.setY(Math.clamp(y, zoomBounds.getY(), zoomBounds.getY() + zoomBounds.getHeight() - zoomArea.getHeight()));
+
+        redrawPendingProperty.set(true);
     }
 
     public void fillRectWithZoom(double x, double y, double w, double h) {
@@ -162,10 +198,6 @@ public class ZoomCanvas extends Canvas {
         y = (y - zoomArea.getY()) * zoomHeightRatio() + zoomBounds.getY();
 
         getGraphicsContext2D().drawImage(img, x, y);
-    }
-
-    public BooleanProperty redrawPendingProperty() {
-        return redrawPendingProperty;
     }
 
     private void registerScrollListener() {
@@ -200,7 +232,6 @@ public class ZoomCanvas extends Canvas {
         });
     }
 
-
     private void registerDragListener() {
         addEventHandler(MouseEvent.MOUSE_PRESSED, ev -> {
             if (ev.getButton() == MouseButton.MIDDLE) {
@@ -225,38 +256,6 @@ public class ZoomCanvas extends Canvas {
                 lastMouseY = ev.getY();
             }
         });
-    }
-
-    public void setZoomBounds(double x, double y, double w, double h) {
-        double widthRatio = w / zoomBounds.getWidth();
-        double heightRatio = h / zoomBounds.getHeight();
-
-
-
-        zoomBounds.setX(x);
-        zoomBounds.setY(y);
-        zoomBounds.setWidth(w);
-        zoomBounds.setHeight(h);
-
-        if (Math.abs(widthRatio - heightRatio) < 0.00001) {
-            setZoomArea(
-                    zoomBounds.getX() + x * widthRatio,
-                    zoomBounds.getY() + y * heightRatio,
-                    w * widthRatio,
-                    h * heightRatio);
-        } else {
-            setZoomArea(x, y, w, h);
-        }
-    }
-
-    public void setZoomArea(double x, double y, double w, double h) {
-        zoomArea.setWidth(Math.clamp(w, 50, zoomBounds.getWidth()));
-        zoomArea.setHeight(Math.clamp(h, 50, zoomBounds.getHeight()));
-
-        zoomArea.setX(Math.clamp(x, zoomBounds.getX(), zoomBounds.getX() + zoomBounds.getWidth() - zoomArea.getWidth()));
-        zoomArea.setY(Math.clamp(y, zoomBounds.getY(), zoomBounds.getY() + zoomBounds.getHeight() - zoomArea.getHeight()));
-
-        redrawPendingProperty.set(true);
     }
 }
 
