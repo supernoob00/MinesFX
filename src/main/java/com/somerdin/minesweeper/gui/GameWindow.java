@@ -216,6 +216,7 @@ public class GameWindow {
         RadioMenuItem item = new RadioMenuItem(name);
         item.setOnAction(ev -> {
             startGameAfterConfirmation(difficulty);
+            // TODO: should not use toString() for this
             Application.PREFERENCES.put(Application.DIFFICULTY_PREF, difficulty.toString());
         });
         return item;
@@ -302,12 +303,15 @@ public class GameWindow {
         customDifficultyOptions.initModality(Modality.WINDOW_MODAL);
 
         startButton.setOnAction(ev -> {
+            System.out.println("CHANGING TO CUSTOM");
             customDifficultyOptions.close();
 
             Difficulty difficulty = new Difficulty(
                     rowSpinner.getValue(),
                     colSpinner.getValue(),
                     bombSpinner.getValue());
+
+            Application.PREFERENCES.put(Application.DIFFICULTY_PREF, Application.CUSTOM_DIFFICULTY_VALUE);
             startGame(difficulty);
         });
 

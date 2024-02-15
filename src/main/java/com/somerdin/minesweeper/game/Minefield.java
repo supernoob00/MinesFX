@@ -50,7 +50,8 @@ public class Minefield {
         percentBomb = difficulty.bombPercent();
 
         int tiles = difficulty.rows() * difficulty.cols();
-        int bombsToPlace = (int) (tiles * (double) (percentBomb / 100));
+        int bombsToPlace = (int) (tiles * (percentBomb / 100D));
+        System.out.println("BOMBS TO PLACE " + bombsToPlace);
         bombsToPlace = Math.clamp(bombsToPlace, 1, tiles - 9);
 
         // set class fields
@@ -426,7 +427,7 @@ public class Minefield {
         private static final char DETONATED_BOMB = 'E';
 
         /* create a minefield from text representation */
-        public static Minefield fromString(String s) {
+        public static Minefield fromFile(File file) throws IOException {
             Minefield minefield = new Minefield();
 
             minefield.firstMove.set(true);
@@ -434,9 +435,8 @@ public class Minefield {
 
             // use two readers; one to determine dimensions of board to create,
             // and other to determine how to fill the cells
-            // TODO: replace with string
-            try (BufferedReader dimensionReader = new BufferedReader(new StringReader(s));
-                 BufferedReader cellReader = new BufferedReader(new StringReader(s));) {
+            try (BufferedReader dimensionReader = new BufferedReader(new FileReader(file));
+                 BufferedReader cellReader = new BufferedReader(new FileReader(file));) {
                 int rows = 0, cols = 0;
 
                 String line = dimensionReader.readLine();
@@ -488,53 +488,51 @@ public class Minefield {
                     }
                     j++;
                 }
-            } catch (IOException e) {
-                throw new RuntimeException("Error in reading file");
             }
             return minefield;
         }
 
-        public static String toFileString(Minefield minefield) {
+        public static void writeToFile(File file, Minefield minefield) throws IOException {
             Cell[][] grid = minefield.grid;
-            StringBuilder board = new StringBuilder();
 
-            for (int i = 0; i < grid.length; i++) {
-                for (int j = 0; j < grid[0].length; j++) {
-                    Cell cell = grid[i][j];
-                    switch (cell.getCellStatus()) {
-                        case HIDDEN -> {
-                            switch (cell.getBombStatus()) {
-                                case NONE -> board.append(HIDDEN_EMPTY);
-                                case UNDETONATED -> board.append(HIDDEN_BOMB);
-                                default -> throw new IllegalArgumentException("Bomb should not be detonated.");
+            try (FileWriter out = new FileWriter(file)) {
+                for (int i = 0; i < grid.length; i++) {
+                    for (int j = 0; j < grid[0].length; j++) {
+                        Cell cell = grid[i][j];
+                        switch (cell.getCellStatus()) {
+                            case HIDDEN -> {
+                                switch (cell.getBombStatus()) {
+                                    case NONE -> out.append(HIDDEN_EMPTY);
+                                    case UNDETONATED -> out.append(HIDDEN_BOMB);
+                                    default -> throw new IllegalArgumentException("Bomb should not be detonated.");
+                                }
                             }
-                        }
-                        case REVEALED -> {
-                            switch (cell.getBombStatus()) {
-                                case NONE -> board.append(REVEALED_EMPTY);
-                                case UNDETONATED -> board.append(REVEALED_BOMB);
-                                case DETONATED -> board.append(DETONATED_BOMB);
+                            case REVEALED -> {
+                                switch (cell.getBombStatus()) {
+                                    case NONE -> out.append(REVEALED_EMPTY);
+                                    case UNDETONATED -> out.append(REVEALED_BOMB);
+                                    case DETONATED -> out.append(DETONATED_BOMB);
+                                }
                             }
-                        }
-                        case FLAGGED -> {
-                            switch (cell.getBombStatus()) {
-                                case NONE -> board.append(FLAGGED_EMPTY);
-                                case UNDETONATED -> board.append(FLAGGED_BOMB);
-                                default -> throw new IllegalArgumentException("Bomb should not be detonated.");
+                            case FLAGGED -> {
+                                switch (cell.getBombStatus()) {
+                                    case NONE -> out.append(FLAGGED_EMPTY);
+                                    case UNDETONATED -> out.append(FLAGGED_BOMB);
+                                    default -> throw new IllegalArgumentException("Bomb should not be detonated.");
+                                }
                             }
-                        }
-                        case FLAGGED_QUESTION -> {
-                            switch (cell.getBombStatus()) {
-                                case NONE -> board.append(QUESTION_EMPTY);
-                                case UNDETONATED -> board.append(QUESTION_BOMB);
-                                default -> throw new IllegalArgumentException("Bomb should not be detonated.");
+                            case FLAGGED_QUESTION -> {
+                                switch (cell.getBombStatus()) {
+                                    case NONE -> out.append(QUESTION_EMPTY);
+                                    case UNDETONATED -> out.append(QUESTION_BOMB);
+                                    default -> throw new IllegalArgumentException("Bomb should not be detonated.");
+                                }
                             }
                         }
                     }
+                    out.append(ROW_DIVIDER);
                 }
-                board.append(ROW_DIVIDER);
             }
-            return board.toString();
         }
     }
 }

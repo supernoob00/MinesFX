@@ -123,7 +123,6 @@ public class GameBoard {
 
             for (int i = 0; i < rows(); i++) {
                 for (int j = 0; j < cols(); j++) {
-                    System.out.println("X: " + canvas.getZoomBoundsX());
                     drawTile(canvas.getZoomBoundsX(), canvas.getZoomBoundsY(), i, j);
                 }
             }
@@ -158,13 +157,10 @@ public class GameBoard {
         double x = cellCornerX(col) + xShift;
         double y = cellCornerY(row) + yShift;
 
-        System.out.println("X: " + x);
-
         canvas.fillRectWithZoom(x, y, tileLength.get(), tileLength.get());
 
         Image image = getTileImage(row, col);
         if (image != null) {
-            System.out.println(canvas.getZoomScale());
             canvas.drawImageWithZoom(
                     image,
                     x + 0.125 * tileLength.get(),
